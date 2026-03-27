@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { writeLimiter } from '../middleware/rateLimit'
-import { keccak256, encodePacked, toBytes } from 'viem'
+import { keccak256, encodePacked, toBytes, encodeFunctionData } from 'viem'
 import crypto from 'crypto'
-import { CONTRACTS } from '../lib/client'
+import { CONTRACTS, VEHICLE_IDENTITY_ABI } from '../lib/client'
 
 const router = Router()
 
@@ -250,6 +250,75 @@ router.get('/:batchId/proofs', requireAuth, async (req, res) => {
       leaf: v.leaf,
       proof: v.proof,
     })),
+  })
+})
+
+/**
+ * POST /api/v1/vehicles/batch/:batchId/transfer
+ * Generate unsigned safeTransferFrom calldata for bulk distribution.
+ *
+ * Body:
+ *   from: string               — OEM wallet address (current holder)
+ *   transfers: {
+ *     tokenId: string,          — NFT token ID
+ *     to: string                — recipient wallet address
+ *   }[]
+ *
+ * Returns an array of unsigned transactions ready to sign and broadcast.
+ * The OEM signs each one with their wallet (or a multicall contract for batching).
+ */
+router.post('/:batchId/transfer', requireAuth, writeLimiter, async (req, res) => {
+  const batch = batches.get(req.params.batchId)
+  if (!batch) {
+    res.status(404).json({ error: 'Batch not found' })
+    return
+  }
+
+  const { from, transfers } = req.body
+
+  if (!from) {
+    res.status(400).json({ error: 'from address required' })
+    return
+  }
+  if (!Array.isArray(transfers) || transfers.length === 0) {
+    res.status(400).json({ error: 'transfers must be a non-empty array of { tokenId, to }' })
+    return
+  }
+  if (transfers.length > 1000) {
+    res.status(400).json({ error: 'Maximum 1,000 transfers per call. Paginate larger batches.' })
+    return
+  }
+
+  const invalid = transfers.filter(t => !t.tokenId || !t.to)
+  if (invalid.length > 0) {
+    res.status(400).json({ error: 'Each transfer must have tokenId and to address', invalid })
+    return
+  }
+
+  const unsignedTxs = transfers.map((t: { tokenId: string; to: string }) => ({
+    tokenId: t.tokenId,
+    to: t.to,
+    unsignedTx: {
+      to: CONTRACTS.vehicleIdentity,
+      data: encodeFunctionData({
+        abi: VEHICLE_IDENTITY_ABI,
+        functionName: 'safeTransferFrom',
+        args: [
+          from as `0x${string}`,
+          t.to as `0x${string}`,
+          BigInt(t.tokenId),
+        ],
+      }),
+    },
+  }))
+
+  res.json({
+    batchId: batch.batchId,
+    from,
+    total: unsignedTxs.length,
+    contract: CONTRACTS.vehicleIdentity,
+    unsignedTxs,
+    hint: 'Sign and broadcast each transaction with the OEM wallet. Use a multicall contract to batch multiple transfers into one transaction.',
   })
 })
 

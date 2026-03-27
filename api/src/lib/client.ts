@@ -36,6 +36,16 @@ export const VEHICLE_IDENTITY_ABI = [
     stateMutability: 'view',
   },
   {
+    type: 'function', name: 'safeTransferFrom',
+    inputs: [
+      { name: 'from', type: 'address' },
+      { name: 'to', type: 'address' },
+      { name: 'tokenId', type: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
     type: 'function', name: 'ownerOf',
     inputs: [{ name: 'tokenId', type: 'uint256' }],
     outputs: [{ name: '', type: 'address' }],
