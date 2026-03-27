@@ -268,7 +268,7 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
   <div class="container">
     <div class="stats-grid">
       <div><div class="stat-val">10</div><div class="stat-label">Live Contracts on Sepolia</div></div>
-      <div><div class="stat-val">ERC-721</div><div class="stat-label">Soulbound Vehicle NFTs</div></div>
+      <div><div class="stat-val">100K</div><div class="stat-label">Vehicles Per Batch Call</div></div>
       <div><div class="stat-val">35+</div><div class="stat-label">Reserved OEM Namespaces</div></div>
       <div><div class="stat-val">0.3%</div><div class="stat-label">Charging Protocol Fee</div></div>
       <div><div class="stat-val">REST+GQL</div><div class="stat-label">Dual API Interface</div></div>
@@ -289,8 +289,8 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
       <div class="feature-card fade-in">
         <div class="feature-icon icon-cyan">🚗</div>
         <h3>Vehicle Identity (ERC-721 + ERC-5192)</h3>
-        <p>Every vehicle gets a soulbound NFT minted to its owner. VIN hash stored on-chain, manufacturer data queryable. Tokens are locked by default — preventing unauthorized transfer while enabling permissioned access via TRANSFER_ROLE.</p>
-        <span class="feature-tag">VehicleIdentity.sol</span>&nbsp;<span class="feature-tag green">GET /vehicles/:id</span>
+        <p>Every vehicle gets an NFT — soulbound or transferable, OEM's choice. Pre-authorize up to 100,000 vehicles in one API call via Merkle batch. Mint all to OEM wallet, distribute individually at point of sale, lease handoff, or fleet deployment. ENS name resolves to current holder automatically.</p>
+        <span class="feature-tag">VehicleIdentity.sol</span>&nbsp;<span class="feature-tag green">POST /vehicles/batch/preauthorize</span>
       </div>
       <div class="feature-card fade-in">
         <div class="feature-icon icon-green">🔋</div>
@@ -374,7 +374,7 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
       <div class="usecase-card uc-oem">
         <div class="uc-label">🚗 Auto OEM</div>
         <h3>Tesla claims tesla.e-car.eth</h3>
-        <p>Tesla pays 10 ETH to claim their namespace. All vehicles get minted as soulbound NFTs under <code style="color:var(--cyan);font-size:11px">*.tesla.e-car.eth</code>. Battery passport data posted by Tesla's oracle. Voice SDK drops into FSD — drivers say "charge my car" and the agent wallet handles payment end-to-end.</p>
+        <p>Tesla claims their namespace, submits 1M VINs in a single API call — Merkle root committed on-chain in one transaction. Choose soulbound (permanent owner identity) or transferable (resale, leasing). Mint batch to OEM wallet, distribute at point of sale. ENS name resolves to the current holder automatically. Voice SDK in FSD — "charge my car" executes on-chain.</p>
       </div>
       <div class="usecase-card uc-charging">
         <div class="uc-label">⚡ Charging Network</div>
@@ -432,7 +432,7 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
       <div class="step">
         <div class="step-num">4</div>
         <h3>Register Vehicles</h3>
-        <p>Mint vehicle NFTs for your fleet via the API. Each gets a soulbound token, ENS subname, and battery passport slot — ready for data from day one.</p>
+        <p>Submit up to 100K VINs in one call. Choose soulbound or transferable per vehicle. One on-chain transaction commits the Merkle root — vehicles claim their NFT and ENS name individually using their proof.</p>
       </div>
     </div>
     <div class="code-section fade-in" style="margin-top:64px">
@@ -443,25 +443,24 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
           <div class="code-dot" style="background:#27c93f"></div>
           <span style="margin-left:8px">cURL — Read live Sepolia data</span>
         </div>
-        <div class="code-body"><span class="comment"># 1. Get free API key</span>
-<span class="fn">curl</span> <span class="str">-X POST</span> https://earnest-harmony-e-car.up.railway.app/auth/keys \
+        <div class="code-body"><span class="comment"># 1. Pre-authorize 100K vehicles in one call</span>
+<span class="fn">curl</span> <span class="str">-X POST</span> https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/batch/preauthorize \
+  <span class="str">-H</span> <span class="str">"x-api-key: ecar_oem_..."</span> \
   <span class="str">-H</span> <span class="str">"Content-Type: application/json"</span> \
-  <span class="str">-d</span> <span class="str">'{"label":"my-oem","tier":"free"}'</span>
+  <span class="str">-d</span> <span class="str">'{"vins":["5YJ...001","5YJ...002"],"manufacturer":"Tesla","model":"Model 3","year":2024,"batteryCapacityKwh":82,"soulbound":true,"overrides":[{"vin":"5YJ...002","soulbound":false}]}'</span>
 
-<span class="comment"># 2. Read vehicle identity (live Sepolia)</span>
-<span class="fn">curl</span> https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/<span class="num">1</span> \
-  <span class="str">-H</span> <span class="str">"x-api-key: ecar_fre_..."</span>
-
-<span class="comment"># Response from VehicleIdentity contract</span>
+<span class="comment"># Returns Merkle root — submit on-chain in ONE transaction</span>
 {
-  <span class="prop">"tokenId"</span>: <span class="str">"1"</span>,
-  <span class="prop">"manufacturer"</span>: <span class="str">"Tesla"</span>,
-  <span class="prop">"model"</span>: <span class="str">"Model 3"</span>,
-  <span class="prop">"year"</span>: <span class="num">2024</span>,
-  <span class="prop">"batteryCapacityKwh"</span>: <span class="str">"82000"</span>,
-  <span class="prop">"locked"</span>: <span class="kw">true</span>,
-  <span class="prop">"owner"</span>: <span class="str">"0x5f11...1165b"</span>
-}</div>
+  <span class="prop">"batchId"</span>: <span class="str">"batch_a1b2c3d4..."</span>,
+  <span class="prop">"merkleRoot"</span>: <span class="str">"0x9c01..."</span>,
+  <span class="prop">"total"</span>: <span class="num">100000</span>,
+  <span class="prop">"soulboundCount"</span>: <span class="num">99999</span>,
+  <span class="prop">"transferableCount"</span>: <span class="num">1</span>
+}
+
+<span class="comment"># 2. Distribute to buyer at point of sale</span>
+<span class="fn">curl</span> <span class="str">-X POST</span> https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/batch/batch_a1b2c3d4/transfer \
+  <span class="str">-d</span> <span class="str">'{"from":"0xOEM_WALLET","transfers":[{"tokenId":"1","to":"0xBUYER_WALLET"}]}'</span></div>
       </div>
       <div class="code-card">
         <div class="code-header">

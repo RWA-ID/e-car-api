@@ -115,7 +115,7 @@ e-car.eth                                    ← Protocol root
 
 **Contract:** `VehicleIdentity.sol` — [`0x54e01a...eB41d1`](https://sepolia.etherscan.io/address/0x54e01a35371a5cc945403b34f151bF082FeB41d1)
 
-Every registered vehicle is minted as a **soulbound NFT**. The token stores the VIN as a `keccak256` hash (privacy-preserving, still verifiable), manufacturer, model, year, and battery capacity — permanently anchored on Ethereum.
+Every registered vehicle is minted as an NFT — **soulbound or transferable, the OEM's choice per vehicle**. The token stores the VIN as a `keccak256` hash (privacy-preserving, still verifiable), manufacturer, model, year, and battery capacity — permanently anchored on Ethereum.
 
 ```solidity
 struct VehicleData {
@@ -125,8 +125,60 @@ struct VehicleData {
     uint16 year;                // 2024
     uint256 batteryCapacityKwh; // 82000 Wh
     uint256 registrationDate;   // Unix timestamp
-    bool transferApproved;      // ERC-5192 soulbound state
+    bool transferApproved;      // ERC-5192 lock state
 }
+```
+
+#### Soulbound vs Transferable
+
+| Mode | Use Case | ENS Resolution |
+|---|---|---|
+| **Soulbound** (`locked: true`) | Permanent identity, regulatory compliance, theft deterrence | Always resolves to original owner |
+| **Transferable** (`locked: false`) | Resale, leasing, fleet redistribution, owner claims, point-of-sale | Resolves to current holder automatically |
+
+The ENS name (`5YJ...001.tesla.e-car.eth`) always resolves to whoever currently holds the NFT. Ownership, identity, and payment routing update atomically on transfer — no registry changes required.
+
+#### OEM Monetization via Owner Claims (Transferable mode)
+
+With transferable NFTs, OEMs can mint the entire batch to their own wallet and gate distribution behind a **paid claim**:
+
+```
+OEM mints 100K vehicles → holds in treasury wallet
+    │
+    └── Buyer pays claim fee (in ETH, USDC, or OEM token)
+            → OEM wallet executes safeTransferFrom to buyer
+            → ENS resolves to buyer immediately
+            → Buyer gains access to charging, V2G, agent wallet
+```
+
+This creates an **on-chain revenue stream** for OEMs: each vehicle claim is a programmable sale. Secondary market resales generate royalties (ERC-2981). Lease returns are a single transfer back to the OEM treasury.
+
+#### Merkle Batch Pre-Authorization
+
+OEMs pre-authorize up to **100,000 vehicles in a single API call**. The API builds a Merkle tree, returns the root, and the OEM commits it on-chain in **one transaction**. Each vehicle claims its NFT using its Merkle proof.
+
+```bash
+# Step 1 — Pre-authorize 100K vehicles (one API call, one on-chain tx)
+curl -X POST https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/batch/preauthorize \
+  -H "x-api-key: ecar_oem_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vins": ["5YJSA1H21FFP12345", "5YJSA1H21FFP12346"],
+    "manufacturer": "Tesla", "model": "Model 3", "year": 2024,
+    "batteryCapacityKwh": 82,
+    "soulbound": true,
+    "overrides": [{ "vin": "5YJSA1H21FFP12346", "soulbound": false }]
+  }'
+# { "batchId": "batch_a1b2...", "merkleRoot": "0x9c01...", "total": 100000,
+#   "soulboundCount": 99999, "transferableCount": 1 }
+
+# Step 2 — Get proof for a vehicle at registration/claim time
+curl https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/batch/batch_a1b2/proof/5YJSA1H21FFP12345
+
+# Step 3 — Transfer from OEM wallet to buyer (up to 1000 per call)
+curl -X POST https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/batch/batch_a1b2/transfer \
+  -H "x-api-key: ecar_oem_..." \
+  -d '{"from":"0xOEM_WALLET","transfers":[{"tokenId":"1","to":"0xBUYER_WALLET"}]}'
 ```
 
 **What this enables:**
@@ -137,11 +189,12 @@ struct VehicleData {
 | Resale transparency | Buyers verify ownership history and battery specs on-chain |
 | EU Digital Product Passport | Tamper-proof vehicle identity for regulatory compliance |
 | Insurance underwriting | Verified vehicle data without owner self-reporting |
-| Theft deterrence | Soulbound binding makes NFT title theft structurally impossible |
+| OEM revenue stream | Transferable NFTs enable paid owner claims and secondary royalties |
+| Point-of-sale delivery | OEM mints batch, transfers to buyer at handoff — ENS updates instantly |
+| Leasing & fleet | OEM holds NFT during lease, transfers on contract end or reassignment |
 
 ```bash
-curl https://api.e-car.eth/api/v1/vehicles/1 -H "x-api-key: ecar_..."
-# Live response from VehicleIdentity.sol on Sepolia:
+curl https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/1 -H "x-api-key: ecar_..."
 # { "tokenId":"1", "manufacturer":"Tesla", "model":"Model 3", "year":2024,
 #   "batteryCapacityKwh":"82000", "locked":true, "owner":"0x5f11...1165b" }
 ```
@@ -484,38 +537,47 @@ Vehicle owners monetize their own data via privacy-preserving Merkle proofs. Buy
 
 ## API Reference
 
+### Base URL
+
+```
+https://earnest-harmony-e-car.up.railway.app
+```
+
 ### Authentication
 
-```bash
-# Generate API key
-curl -X POST https://api.e-car.eth/auth/keys \
-  -H "Content-Type: application/json" \
-  -d '{"label": "my-integration", "tier": "free"}'
+API keys are issued manually after submitting the access request form at [e-car.eth.limo](https://e-car.eth.limo). Contact [e-car@onchain-id.id](mailto:e-car@onchain-id.id) for OEM and Enterprise tiers.
 
-# Use in all requests
-curl https://api.e-car.eth/api/v1/vehicles/1 -H "x-api-key: ecar_fre_..."
+```bash
+# All authenticated requests
+curl https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/1 \
+  -H "x-api-key: ecar_oem_..."
 ```
 
 ### Core Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Health check (no auth) |
-| `POST` | `/auth/keys` | Generate API key |
-| `GET` | `/api/v1/vehicles/:tokenId` | Get vehicle — reads `VehicleIdentity.sol` |
-| `POST` | `/api/v1/vehicles` | Register vehicle (OEM) |
-| `GET` | `/api/v1/battery/:vehicleId` | Latest passport — reads `BatteryPassport.sol` |
-| `GET` | `/api/v1/battery/:vehicleId/history` | Full battery history |
-| `GET` | `/api/v1/charging/stations` | List stations — reads `ChargingStationRegistry.sol` |
-| `POST` | `/api/v1/charging/sessions` | Initiate charging session |
-| `GET` | `/api/v1/brands/:brand` | Brand namespace info |
-| `POST` | `/api/v1/brands/:brand/claim` | Claim namespace (returns unsigned tx) |
-| `GET` | `/api/v1/fleet/:fleetId/payments` | Fleet payment summary |
-| `GET` | `/api/v1/carbon/:vehicleId` | Carbon credit balance |
-| `POST` | `/api/v1/voice/intent` | Process voice intent |
-| `GET` | `/graphql` | GraphQL endpoint |
-| `WS` | `/ws` | WebSocket real-time events |
-| `GET` | `/docs` | Swagger UI |
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/health` | None | Health check |
+| `GET` | `/auth/tiers` | None | List tiers and pricing |
+| `GET` | `/api/v1/vehicles/:tokenId` | None | Get vehicle from `VehicleIdentity.sol` |
+| `POST` | `/api/v1/vehicles` | Required | Register vehicle (returns unsigned tx) |
+| `POST` | `/api/v1/vehicles/batch/preauthorize` | Required | Pre-authorize up to 100K vehicles via Merkle |
+| `GET` | `/api/v1/vehicles/batch/:batchId` | Required | Get batch summary |
+| `GET` | `/api/v1/vehicles/batch/:batchId/proof/:vin` | None | Get Merkle proof for a VIN |
+| `GET` | `/api/v1/vehicles/batch/:batchId/proofs` | Required | Get all proofs (paginated) |
+| `POST` | `/api/v1/vehicles/batch/:batchId/transfer` | Required | Generate bulk transfer calldata |
+| `GET` | `/api/v1/battery/:vehicleId` | None | Latest passport from `BatteryPassport.sol` |
+| `GET` | `/api/v1/battery/:vehicleId/history` | None | Full battery history |
+| `GET` | `/api/v1/charging/stations` | None | List stations from `ChargingStationRegistry.sol` |
+| `POST` | `/api/v1/charging/sessions` | Required | Initiate charging session |
+| `GET` | `/api/v1/brands/:brand` | None | Brand namespace info |
+| `POST` | `/api/v1/brands/:brand/claim` | Required | Claim namespace (returns unsigned tx) |
+| `GET` | `/api/v1/fleet/:fleetId/payments` | Required | Fleet payment summary |
+| `GET` | `/api/v1/carbon/:vehicleId` | Required | Carbon credit balance |
+| `POST` | `/api/v1/voice/intent` | Required | Process voice intent |
+| `GET` | `/graphql` | None | GraphQL endpoint |
+| `WS` | `/ws` | None | WebSocket real-time events |
+| `GET` | `/docs` | None | Swagger UI |
 
 ### WebSocket Events
 
