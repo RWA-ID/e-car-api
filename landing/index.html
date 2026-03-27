@@ -800,7 +800,7 @@ async function handleSubmit(event) {
     }
   } catch (err) {
     result.className = 'form-result error';
-    result.textContent = '✗ Something went wrong. Please try again or email e-car@onchain-id.id directly.';
+    result.textContent = '✗ ' + (err instanceof Error ? err.message : 'Something went wrong') + ' — or email e-car@onchain-id.id directly.';
   } finally {
     btn.disabled = false;
     btn.textContent = '⚡ Request Access';
