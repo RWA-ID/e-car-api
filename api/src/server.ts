@@ -5,6 +5,7 @@ import cors from 'cors'
 import swaggerUi from 'swagger-ui-express'
 import { standardLimiter } from './middleware/rateLimit'
 import vehiclesRouter from './routes/vehicles'
+import batchRouter from './routes/batch'
 import batteryRouter from './routes/battery-passport'
 import payRouter from './routes/pay'
 import voiceRampRouter from './routes/voice-ramp'
@@ -52,6 +53,7 @@ app.use('/auth', authRouter)
 
 // ── REST routes ───────────────────────────────────────────────────────────────
 app.use('/api/v1/vehicles',  vehiclesRouter)
+app.use('/api/v1/vehicles/batch', batchRouter)
 app.use('/api/v1/battery',   batteryRouter)
 app.use('/api/v1/pay',       payRouter)
 app.use('/api/v1/voice',     voiceRampRouter)
