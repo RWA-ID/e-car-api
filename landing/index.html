@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
       <div class="step">
         <div class="step-num">2</div>
         <h3>Call the API</h3>
-        <p>Use REST, GraphQL, or WebSocket. Full OpenAPI 3.0 spec at <code style="color:var(--cyan)">api.e-car.eth/docs</code>. SDKs available for TypeScript and Python.</p>
+        <p>Use REST, GraphQL, or WebSocket. Full OpenAPI 3.0 spec at <code style="color:var(--cyan)">earnest-harmony-e-car.up.railway.app/docs</code>. SDKs available for TypeScript and Python.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
@@ -444,12 +444,12 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
           <span style="margin-left:8px">cURL — Read live Sepolia data</span>
         </div>
         <div class="code-body"><span class="comment"># 1. Get free API key</span>
-<span class="fn">curl</span> <span class="str">-X POST</span> https://api.e-car.eth/auth/keys \
+<span class="fn">curl</span> <span class="str">-X POST</span> https://earnest-harmony-e-car.up.railway.app/auth/keys \
   <span class="str">-H</span> <span class="str">"Content-Type: application/json"</span> \
   <span class="str">-d</span> <span class="str">'{"label":"my-oem","tier":"free"}'</span>
 
 <span class="comment"># 2. Read vehicle identity (live Sepolia)</span>
-<span class="fn">curl</span> https://api.e-car.eth/api/v1/vehicles/<span class="num">1</span> \
+<span class="fn">curl</span> https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/<span class="num">1</span> \
   <span class="str">-H</span> <span class="str">"x-api-key: ecar_fre_..."</span>
 
 <span class="comment"># Response from VehicleIdentity contract</span>
