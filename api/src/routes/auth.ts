@@ -14,9 +14,14 @@ const TIERS: Record<string, { monthlyLimit: number; rateLimit: number; price: st
 
 /**
  * POST /auth/keys
- * Generate a new API key
+ * Generate a new API key (admin only)
  */
 router.post('/keys', (req, res) => {
+  const adminSecret = req.headers['x-admin-secret']
+  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+    res.status(401).json({ error: 'Unauthorized. Contact e-car@onchain-id.id to request an API key.' })
+    return
+  }
   const { label, tier = 'free' } = req.body
   if (!label) {
     res.status(400).json({ error: 'label required' })
