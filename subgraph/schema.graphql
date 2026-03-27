@@ -1,0 +1,58 @@
+type Vehicle @entity {
+  id: ID!
+  tokenId: BigInt!
+  vinHash: Bytes!
+  manufacturer: String!
+  model: String!
+  year: Int!
+  batteryCapacityKwh: BigInt!
+  registrationDate: BigInt!
+  owner: String!
+  locked: Boolean!
+  batteryHistory: [BatteryEntry!]! @derivedFrom(field: "vehicle")
+  payments: [Payment!]! @derivedFrom(field: "vehicleId")
+}
+
+type BatteryEntry @entity {
+  id: ID!
+  vehicle: Vehicle!
+  merkleRoot: Bytes!
+  stateOfHealth: BigInt!
+  cycleCount: BigInt!
+  timestamp: BigInt!
+}
+
+type Brand @entity {
+  id: ID!
+  name: String!
+  registry: String!
+  resolver: String!
+  multiSig: String!
+  claimed: Boolean!
+  reserved: Boolean!
+  claimedAt: BigInt
+}
+
+type Payment @entity {
+  id: ID!
+  escrowId: BigInt!
+  vehicleId: String
+  payer: String!
+  payee: String!
+  amount: BigInt!
+  token: String!
+  paymentType: String!
+  status: String!
+  createdAt: BigInt!
+  settledAt: BigInt
+}
+
+type ChargingSession @entity {
+  id: ID!
+  stationId: Bytes!
+  escrowId: BigInt!
+  initiatedAt: BigInt!
+  finalizedAt: BigInt
+  actualKwh: BigInt
+  totalCost: BigInt
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@e-car-eth/voice-sdk",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": { "build": "tsc" },
+  "dependencies": { "@e-car-eth/sdk": "*" },
+  "devDependencies": { "typescript": "^5.5.0" }
+}

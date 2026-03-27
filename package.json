@@ -1,0 +1,14 @@
+{
+  "name": "e-car-eth",
+  "private": true,
+  "workspaces": ["sdk", "voice-sdk", "api", "ccip-gateway", "frontend"],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0"
+  }
+}

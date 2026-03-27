@@ -1,0 +1,95 @@
+specVersion: 1.0.0
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: VehicleIdentity
+    network: sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: VehicleIdentity
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Vehicle
+      abis:
+        - name: VehicleIdentity
+          file: ./abis/VehicleIdentity.json
+      eventHandlers:
+        - event: VehicleRegistered(indexed uint256,bytes32,string,string,uint16)
+          handler: handleVehicleRegistered
+        - event: VehicleTransferred(indexed uint256,address)
+          handler: handleVehicleTransferred
+      file: ./src/vehicle-identity.ts
+
+  - kind: ethereum
+    name: BatteryPassport
+    network: sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: BatteryPassport
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BatteryEntry
+      abis:
+        - name: BatteryPassport
+          file: ./abis/BatteryPassport.json
+      eventHandlers:
+        - event: PassportUpdated(indexed uint256,bytes32,uint256,uint256)
+          handler: handlePassportUpdated
+      file: ./src/battery-passport.ts
+
+  - kind: ethereum
+    name: NamespaceGovernorFactory
+    network: sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: NamespaceGovernorFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Brand
+      abis:
+        - name: NamespaceGovernorFactory
+          file: ./abis/NamespaceGovernorFactory.json
+      eventHandlers:
+        - event: NamespaceCreated(string,address,address,address)
+          handler: handleNamespaceCreated
+        - event: BrandReserved(string)
+          handler: handleBrandReserved
+      file: ./src/namespace-factory.ts
+
+  - kind: ethereum
+    name: UniversalPaymentEscrow
+    network: sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: UniversalPaymentEscrow
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Payment
+      abis:
+        - name: UniversalPaymentEscrow
+          file: ./abis/UniversalPaymentEscrow.json
+      eventHandlers:
+        - event: EscrowCreated(indexed uint256,address,address,uint256,address,uint8)
+          handler: handleEscrowCreated
+        - event: EscrowReleased(indexed uint256,uint256)
+          handler: handleEscrowReleased
+        - event: EscrowRefunded(indexed uint256)
+          handler: handleEscrowRefunded
+      file: ./src/payment-escrow.ts
