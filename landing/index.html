@@ -228,6 +228,10 @@ footer{border-top:1px solid var(--border);padding:64px 0 32px}
       <li><a href="#access">Get Access</a></li>
     </ul>
     <div class="nav-cta">
+      <a href="https://github.com/RWA-ID/e-car-api" target="_blank" class="btn-secondary" style="padding:8px 18px;font-size:13px;border-radius:8px;display:inline-flex;align-items:center;gap:6px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
       <span class="badge-sepolia">● LIVE ON SEPOLIA</span>
       <a href="#access" class="btn-nav">Request Access</a>
     </div>
@@ -738,10 +742,12 @@ console.<span class="fn">log</span>(session.status) <span class="comment">// 'AC
       <div class="footer-col">
         <h4>Developers</h4>
         <ul>
+          <li><a href="https://github.com/RWA-ID/e-car-api" target="_blank">GitHub Repository</a></li>
           <li><a href="https://sepolia.etherscan.io" target="_blank">Sepolia Explorer</a></li>
           <li><a href="#access">API Docs</a></li>
           <li><a href="#access">GraphQL</a></li>
           <li><a href="#access">WebSocket</a></li>
+          <li><a href="mailto:e-car@onchain-id.id">e-car@onchain-id.id</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -755,7 +761,7 @@ console.<span class="fn">log</span>(session.status) <span class="comment">// 'AC
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2025 e-car.eth Protocol · MIT License · Ethereum Sepolia</p>
+      <p>© 2025 e-car.eth Protocol · MIT License · Ethereum Sepolia · <a href="mailto:e-car@onchain-id.id" style="color:var(--muted)">e-car@onchain-id.id</a></p>
       <div class="contract-links">
         <a href="https://sepolia.etherscan.io/address/0x54e01a35371a5cc945403b34f151bF082FeB41d1" target="_blank">VehicleIdentity</a>
         <a href="https://sepolia.etherscan.io/address/0x0931166d309C43E3a4C9e1108cA294a80C794E15" target="_blank">BatteryPassport</a>
@@ -777,9 +783,12 @@ async function handleSubmit(event) {
   result.textContent = 'Submitting your request...';
   try {
     const formData = new FormData(event.target);
+    const payload = {};
+    formData.forEach((value, key) => { payload[key] = value; });
     const response = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (data.success) {
@@ -791,7 +800,7 @@ async function handleSubmit(event) {
     }
   } catch (err) {
     result.className = 'form-result error';
-    result.textContent = '✗ Something went wrong. Please try again or email api@e-car.eth directly.';
+    result.textContent = '✗ Something went wrong. Please try again or email e-car@onchain-id.id directly.';
   } finally {
     btn.disabled = false;
     btn.textContent = '⚡ Request Access';
