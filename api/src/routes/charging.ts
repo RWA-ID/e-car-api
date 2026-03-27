@@ -96,12 +96,12 @@ router.get('/stations/:nodeId', async (req, res) => {
     })
     res.json({
       nodeId,
+      stationId: station.id,
+      brand: station.brand,
       operator: station.operator,
       pricePerKwh: station.pricePerKwh.toString(),
-      maxKw: station.maxKw.toString(),
       active: station.active,
-      latitude: station.latitude.toString(),
-      longitude: station.longitude.toString(),
+      ensName: `${station.id.toLowerCase()}.${station.brand}.e-car.eth`,
     })
   } catch (err: any) {
     res.status(404).json({ error: 'Station not found' })
