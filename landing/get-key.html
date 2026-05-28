@@ -3,355 +3,417 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Get Your API Key — e-car.eth</title>
-<meta name="description" content="Connect your wallet to mint a free Sepolia testnet API key. No waitlist, no email required."/>
+<title>Get API Key · e-car.eth</title>
+<meta name="description" content="Connect any Ethereum wallet to mint a free Sepolia testnet API key. One signature. No email. No waitlist."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#020810;--surface:#060f1e;--card:#0a1628;--border:#0f2040;
-  --cyan:#00d4ff;--green:#00ff88;--purple:#7c3aed;--amber:#f59e0b;--red:#ff5f56;
-  --text:#e2e8f0;--muted:#64748b;--white:#ffffff;
-  --font:'Inter',system-ui,-apple-system,sans-serif;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;line-height:1.6;min-height:100vh}
+  /* get-key local — extends the shared design tokens in styles.css */
+  .gk-wrap   { max-width: 720px; margin: 0 auto; padding: calc(var(--nav-h) + 64px) var(--gutter) 96px; position: relative; z-index: 1; }
+  .gk-eyebrow{ display:inline-flex; align-items:center; gap: 10px; padding: 6px 12px; background: var(--paper-2); border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 32px; }
+  .gk-eyebrow .d { width: 6px; height: 6px; background: var(--lime); border-radius: 50%; box-shadow: 0 0 0 2px rgba(212,255,63,.25); }
+  .gk-eyebrow .v { color: var(--ink); font-weight: 600; }
 
-.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
-.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
-.orb1{width:600px;height:600px;background:rgba(0,212,255,.06);top:-200px;right:-200px}
-.orb2{width:500px;height:500px;background:rgba(0,255,136,.05);bottom:-150px;left:-150px}
+  h1.gk-h    { font-size: clamp(40px, 5.6vw, 64px); font-weight: 600; letter-spacing: -0.04em; line-height: 1; margin-bottom: 22px; }
+  h1.gk-h .underline { position: relative; }
+  h1.gk-h .underline::after { content:''; position: absolute; left: -2px; right: -2px; bottom: 4px; height: 14px; background: var(--lime); z-index: -1; transform: skewX(-6deg); }
+  .gk-lede   { font-size: 17px; color: var(--mute); line-height: 1.6; margin-bottom: 44px; max-width: 56ch; }
 
-nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid rgba(0,212,255,.1);backdrop-filter:blur(20px);background:rgba(2,8,16,.8)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:1200px;margin:0 auto;padding:0 24px}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000}
-.logo-text{font-weight:700;font-size:18px;color:var(--white)}
-.logo-text span{color:var(--cyan)}
-.nav-back{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
-.nav-back:hover{color:var(--cyan)}
+  /* Stepper */
+  .gk-steps  { display: grid; gap: 0; border: 1px solid var(--ink); margin-bottom: 32px; }
+  .gk-step   { display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; padding: 18px 22px; border-bottom: 1px solid var(--line); align-items: center; background: var(--paper); }
+  .gk-step:last-child { border-bottom: none; }
+  .gk-step .num { width: 28px; height: 28px; border: 1px solid var(--line-2); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; color: var(--mute); font-weight: 500; }
+  .gk-step.active        { background: var(--paper-2); }
+  .gk-step.active .num   { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .gk-step.done .num     { background: var(--lime); color: var(--lime-ink); border-color: var(--lime); }
+  .gk-step.done .num::before { content: '✓'; }
+  .gk-step.done .num span    { display: none; }
+  .gk-step h4    { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .gk-step p     { font-size: 13px; color: var(--mute); margin-top: 2px; }
+  .gk-step .tag  { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+  .gk-step.done .tag { color: var(--ok); }
+  .gk-step.active .tag { color: var(--ink); }
 
-.container{max-width:640px;margin:0 auto;padding:120px 24px 80px;position:relative;z-index:1}
+  /* Connect / wallet area */
+  .gk-action { display: flex; flex-direction: column; gap: 14px; }
+  .gk-action .btn-big { padding: 16px 24px; font-size: 15px; font-weight: 600; justify-content: center; width: 100%; }
+  .gk-wallet-info { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--paper-2); border: 1px solid var(--line); font-family: var(--mono); font-size: 13px; }
+  .gk-wallet-info .addr { color: var(--ink); font-weight: 600; }
+  .gk-wallet-info .lbl  { color: var(--mute); margin-right: 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .gk-wallet-info button.disconnect { background: none; border: none; color: var(--mute); font-family: inherit; font-size: 12px; cursor: pointer; padding: 0; }
+  .gk-wallet-info button.disconnect:hover { color: var(--err); }
 
-.tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--green);font-weight:600;letter-spacing:.5px;margin-bottom:24px}
-.tag::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  /* Error banner */
+  .gk-error  { display: none; padding: 14px 16px; background: #fdecec; border: 1px solid var(--err); color: var(--err); font-size: 13.5px; line-height: 1.5; margin-bottom: 24px; }
+  .gk-error.open { display: block; }
+  .gk-error code { font-family: var(--mono); font-size: 12px; background: rgba(180,35,24,.08); padding: 1px 5px; }
 
-h1{font-size:clamp(36px,5vw,56px);font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:16px;color:var(--white)}
-h1 .grad{background:linear-gradient(135deg,var(--cyan) 0%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.sub{font-size:17px;color:var(--muted);margin-bottom:40px;line-height:1.7}
+  /* Key result */
+  .gk-result { display: none; }
+  .gk-result.open { display: block; }
+  .gk-result .key-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 10px; }
+  .gk-key-box { display: flex; align-items: center; gap: 10px; padding: 16px 18px; background: var(--ink); color: var(--paper); border: 1px solid var(--ink); font-family: var(--mono); font-size: 13px; word-break: break-all; line-height: 1.5; }
+  .gk-key-box .accent { color: var(--lime); flex: 1; }
+  .gk-key-box .copy { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: var(--paper); padding: 6px 12px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; flex-shrink: 0; transition: background .15s ease; }
+  .gk-key-box .copy:hover  { background: rgba(212,255,63,.15); border-color: var(--lime); color: var(--lime); }
+  .gk-key-box .copy.copied { background: var(--lime); color: var(--lime-ink); border-color: var(--lime); }
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:24px}
+  .gk-meta { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); margin-top: 16px; }
+  .gk-meta .row { display: flex; justify-content: space-between; padding: 12px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 13px; }
+  .gk-meta .row:nth-child(2n) { border-right: none; }
+  .gk-meta .row:nth-last-child(-n+2) { border-bottom: none; }
+  .gk-meta .l { color: var(--mute); font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+  .gk-meta .v { color: var(--ink); font-family: var(--mono); font-weight: 500; }
+  @media (max-width: 540px) { .gk-meta { grid-template-columns: 1fr; } .gk-meta .row { border-right: none; } }
 
-.steps{display:grid;gap:14px;margin-bottom:32px}
-.step-row{display:flex;align-items:flex-start;gap:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--border);transition:border-color .2s,background .2s}
-.step-row.active{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.04)}
-.step-row.done{border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.04)}
-.step-bullet{width:28px;height:28px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.step-row.active .step-bullet{background:linear-gradient(135deg,var(--cyan),var(--green));color:#000}
-.step-row.done .step-bullet{background:var(--green);color:#000}
-.step-row.done .step-bullet::before{content:'✓'}
-.step-row.done .step-bullet-num{display:none}
-.step-content{flex:1;min-width:0}
-.step-title{font-weight:600;color:var(--white);font-size:15px}
-.step-desc{color:var(--muted);font-size:13px;margin-top:2px}
+  .gk-curl-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin: 28px 0 10px; }
+  .gk-curl { padding: 16px 18px; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 12.5px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .gk-curl .cmt  { color: #7e7e75; }
+  .gk-curl .flag { color: var(--lime); }
+  .gk-curl .str  { color: #e7e3d2; }
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;border:none;transition:transform .2s,opacity .2s;width:100%}
-.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--green));color:#000}
-.btn-primary:hover:not(:disabled){transform:translateY(-2px);opacity:.92}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.btn-secondary{background:transparent;color:var(--white);border:1px solid var(--border)}
-.btn-secondary:hover{border-color:var(--cyan)}
+  .gk-notice { font-size: 12px; color: var(--mute); margin-top: 18px; line-height: 1.6; }
+  .gk-notice a { color: var(--ink); border-bottom: 1px solid var(--mute); }
+  .gk-notice a:hover { color: var(--mute); }
 
-.wallet-info{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.2);border-radius:10px;margin-bottom:20px;font-family:'SF Mono','Fira Code',monospace;font-size:13px}
-.wallet-info .addr{color:var(--cyan)}
-.wallet-info .disconnect{color:var(--muted);font-size:12px;cursor:pointer;background:none;border:none}
-.wallet-info .disconnect:hover{color:var(--red)}
+  /* Spinner */
+  .spin { width: 14px; height: 14px; border: 1.5px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.75s linear infinite; display: inline-block; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-.error{padding:14px 18px;background:rgba(255,95,86,.08);border:1px solid rgba(255,95,86,.3);border-radius:10px;color:#ff8a82;font-size:13px;margin-bottom:20px}
-
-.key-box{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.3);border-radius:10px;padding:20px;margin-bottom:20px}
-.key-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
-.key-row{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3);border-radius:8px;padding:12px 14px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;word-break:break-all}
-.key-val{flex:1;color:var(--green)}
-.copy-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0;transition:color .2s,border-color .2s}
-.copy-btn:hover{color:var(--cyan);border-color:var(--cyan)}
-.copy-btn.copied{color:var(--green);border-color:var(--green)}
-
-.curl-snippet{background:#000;border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:#cbd5e1;overflow-x:auto;white-space:pre;line-height:1.6}
-.curl-snippet .c-comment{color:#475569}
-.curl-snippet .c-flag{color:var(--cyan)}
-.curl-snippet .c-str{color:var(--green)}
-
-.meta-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border)}
-.meta-row:last-child{border-bottom:none}
-.meta-row .label{color:var(--muted)}
-.meta-row .val{color:var(--text);font-family:'SF Mono','Fira Code',monospace}
-
-.notice{font-size:12px;color:var(--muted);margin-top:12px;text-align:center}
-.notice a{color:var(--cyan);text-decoration:none}
-.notice a:hover{text-decoration:underline}
-
-.spinner{width:16px;height:16px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
+  /* Debug panel (hidden until toggled) */
+  .gk-debug { margin-top: 36px; padding: 12px 14px; background: var(--paper-2); border: 1px dashed var(--line-2); font-family: var(--mono); font-size: 11px; color: var(--mute); white-space: pre-wrap; word-break: break-all; }
+  .gk-debug-toggle { background: none; border: none; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); cursor: pointer; margin-top: 24px; padding: 4px 0; }
+  .gk-debug-toggle:hover { color: var(--ink); }
 </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-
-<nav>
+<!-- ───── NAV ───── -->
+<nav class="top">
   <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <div class="logo-icon">⚡</div>
-      <div class="logo-text">e-car<span>.eth</span></div>
+    <a href="index.html" class="brand" aria-label="e-car.eth home">
+      <span class="dot-square"></span>e-car<span class="eth">.eth</span>
     </a>
-    <div style="display:flex;gap:24px;align-items:center">
-      <a href="docs.html" class="nav-back">Docs</a>
-      <a href="index.html" class="nav-back">← Back to main site</a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Protocol</a></li>
+      <li><a href="index.html#oem">OEM</a></li>
+      <li><a href="index.html#pricing">Pricing</a></li>
+      <li><a href="docs.html">Docs</a></li>
+    </ul>
+    <div class="nav-right">
+      <span class="status-pill" title="Live on Ethereum Sepolia"><span class="pulse"></span>SEPOLIA · 10 CONTRACTS</span>
+      <a href="index.html" class="btn btn-ghost btn-sm">← Home</a>
     </div>
   </div>
 </nav>
 
-<div class="container">
+<!-- ───── BODY ───── -->
+<div class="gk-wrap">
 
-  <div class="tag">Sepolia testnet · free tier · 10K req/month</div>
-  <h1>Get your <span class="grad">free API key.</span></h1>
-  <p class="sub">Connect any Ethereum wallet and sign a message. No email, no waitlist, no human in the loop. The signature is a free read-only attestation — it does not authorize any transaction.</p>
+  <div class="gk-eyebrow">
+    <span class="d"></span>
+    <span>SELF-SERVE</span>
+    <span style="color:var(--line-3)">·</span>
+    <span>10K req / mo</span>
+    <span style="color:var(--line-3)">·</span>
+    <span class="v">Sepolia</span>
+  </div>
 
-  <div class="card">
+  <h1 class="gk-h">
+    Get your<br/>
+    <span class="underline">free API key.</span>
+  </h1>
 
-    <div class="steps">
-      <div class="step-row active" id="step-1">
-        <div class="step-bullet"><span class="step-bullet-num">1</span></div>
-        <div class="step-content">
-          <div class="step-title">Connect your wallet</div>
-          <div class="step-desc">MetaMask, WalletConnect, Coinbase Wallet, or any EIP-1193 provider</div>
-        </div>
+  <p class="gk-lede">
+    Connect any Ethereum wallet and sign a short message. No email, no waitlist, no human in the loop. The signature is a free read-only attestation — it does not authorize any transaction.
+  </p>
+
+  <!-- Error banner -->
+  <div class="gk-error" id="error"></div>
+
+  <!-- Stepper -->
+  <div class="gk-steps">
+    <div class="gk-step active" id="step-1">
+      <div class="num"><span>1</span></div>
+      <div>
+        <h4>Connect your wallet</h4>
+        <p>MetaMask, WalletConnect, Coinbase Wallet, Rainbow — any EIP-1193 provider.</p>
       </div>
-      <div class="step-row" id="step-2">
-        <div class="step-bullet"><span class="step-bullet-num">2</span></div>
-        <div class="step-content">
-          <div class="step-title">Sign the SIWE message</div>
-          <div class="step-desc">A short text including a one-time nonce — proves wallet ownership</div>
-        </div>
-      </div>
-      <div class="step-row" id="step-3">
-        <div class="step-bullet"><span class="step-bullet-num">3</span></div>
-        <div class="step-content">
-          <div class="step-title">Receive your API key</div>
-          <div class="step-desc">Free tier on Sepolia — 10,000 requests / month, 60 req/min</div>
-        </div>
-      </div>
+      <span class="tag" id="step-1-tag">PENDING</span>
     </div>
-
-    <div id="error" style="display:none" class="error"></div>
-
-    <div id="wallet-info" style="display:none" class="wallet-info">
-      <span><span style="color:var(--muted)">Connected: </span><span class="addr" id="wallet-addr"></span></span>
-      <button class="disconnect" id="disconnect-btn">disconnect</button>
+    <div class="gk-step" id="step-2">
+      <div class="num"><span>2</span></div>
+      <div>
+        <h4>Sign a SIWE message</h4>
+        <p>A short text including a one-time nonce — proves wallet ownership.</p>
+      </div>
+      <span class="tag" id="step-2-tag">—</span>
     </div>
-
-    <button id="connect-btn" class="btn btn-primary">Connect Wallet</button>
-    <button id="sign-btn" class="btn btn-primary" style="display:none">Sign Message &amp; Mint Key</button>
-
-    <div id="key-result" style="display:none">
-      <div class="key-box">
-        <div class="key-label">Your API Key</div>
-        <div class="key-row">
-          <div class="key-val" id="api-key-val"></div>
-          <button class="copy-btn" id="copy-key">Copy</button>
-        </div>
+    <div class="gk-step" id="step-3">
+      <div class="num"><span>3</span></div>
+      <div>
+        <h4>Receive your API key</h4>
+        <p>Free tier on Sepolia — 10,000 requests / month, 60 req / minute.</p>
       </div>
-
-      <div class="card" style="padding:18px;margin-bottom:20px">
-        <div class="meta-row"><span class="label">Tier</span><span class="val" id="meta-tier">free</span></div>
-        <div class="meta-row"><span class="label">Network</span><span class="val" id="meta-network">sepolia</span></div>
-        <div class="meta-row"><span class="label">Monthly limit</span><span class="val">10,000 requests</span></div>
-        <div class="meta-row"><span class="label">Rate limit</span><span class="val">60 req/min</span></div>
-        <div class="meta-row"><span class="label">Wallet</span><span class="val" id="meta-wallet"></span></div>
-      </div>
-
-      <div class="key-label">Try it now</div>
-      <div class="curl-snippet" id="curl-snippet"></div>
-
-      <p class="notice">
-        Store your key somewhere safe — this page won't show it again unless you reconnect this wallet.<br/>
-        Full API docs at <a href="https://earnest-harmony-e-car.up.railway.app/docs" target="_blank" rel="noopener">/docs</a>.
-      </p>
+      <span class="tag" id="step-3-tag">—</span>
     </div>
   </div>
 
-  <p class="notice">
-    Need OEM, Voice SDK, or mainnet access? <a href="index.html#access">Apply for OEM tier →</a>
+  <!-- Wallet display + actions -->
+  <div class="gk-wallet-info" id="wallet-info" style="display:none">
+    <div><span class="lbl">CONNECTED</span><span class="addr" id="wallet-addr">0x…</span></div>
+    <button class="disconnect" id="disconnect-btn">disconnect</button>
+  </div>
+
+  <div class="gk-action">
+    <button class="btn btn-accent btn-big" id="connect-btn">
+      Connect Wallet
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </button>
+    <button class="btn btn-primary btn-big" id="sign-btn" style="display:none">
+      Sign Message &amp; Mint Key
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <!-- Result -->
+  <div class="gk-result" id="key-result">
+    <div style="height: 32px"></div>
+    <div class="key-label">Your API Key</div>
+    <div class="gk-key-box">
+      <span class="accent" id="api-key-val"></span>
+      <button class="copy" id="copy-key">Copy</button>
+    </div>
+
+    <div class="gk-meta">
+      <div class="row"><span class="l">Tier</span><span class="v" id="meta-tier">free</span></div>
+      <div class="row"><span class="l">Network</span><span class="v" id="meta-network">sepolia</span></div>
+      <div class="row"><span class="l">Monthly limit</span><span class="v">10,000 requests</span></div>
+      <div class="row"><span class="l">Rate limit</span><span class="v">60 req / min</span></div>
+      <div class="row"><span class="l">Wallet</span><span class="v" id="meta-wallet">—</span></div>
+      <div class="row"><span class="l">Issued</span><span class="v" id="meta-issued">—</span></div>
+    </div>
+
+    <div class="gk-curl-label">Try it</div>
+    <div class="gk-curl" id="curl-snippet"></div>
+
+    <p class="gk-notice">
+      Store your key somewhere safe — this page won't show it again unless you reconnect the same wallet.<br/>
+      Full API reference: <a href="docs.html">/docs.html</a> · <a href="https://earnest-harmony-e-car.up.railway.app/docs" target="_blank">Swagger</a>.
+    </p>
+  </div>
+
+  <p class="gk-notice" style="margin-top: 40px;">
+    Need OEM, Voice SDK, or mainnet access? <a href="index.html#apply">→ Apply for OEM pilot</a>
   </p>
+
+  <button class="gk-debug-toggle" id="debug-toggle">↓ DEBUG</button>
+  <pre class="gk-debug" id="debug-panel" style="display:none"></pre>
 </div>
 
-<script type="module">
-  // ─────────────────────────────────────────────────────────────────────────
-  // Config
-  // ─────────────────────────────────────────────────────────────────────────
-  const REOWN_PROJECT_ID = 'bf5f2bd0c7d5083a1e6083fef5508149'
+<!-- ───── Bundled wallet runtime ───── -->
+<script type="module" src="wallet.js"></script>
+
+<!-- ───── Page wiring ───── -->
+<script>
+(() => {
+  const REOWN_PROJECT_ID = 'bf5f2bd0c7d5083a1e6083fef5508149';
   const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3001'
-    : 'https://earnest-harmony-e-car.up.railway.app'
+    : 'https://earnest-harmony-e-car.up.railway.app';
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Reown AppKit setup (via CDN ESM)
-  // ─────────────────────────────────────────────────────────────────────────
-  const { createAppKit } = await import('https://esm.sh/@reown/appkit@1.6.5')
-  const { EthersAdapter } = await import('https://esm.sh/@reown/appkit-adapter-ethers@1.6.5')
-  const { sepolia, mainnet } = await import('https://esm.sh/@reown/appkit/networks')
-  const { BrowserProvider } = await import('https://esm.sh/ethers@6.13.4')
-
-  const appKit = createAppKit({
-    adapters: [new EthersAdapter()],
-    networks: [sepolia, mainnet],
-    defaultNetwork: sepolia,
-    projectId: REOWN_PROJECT_ID,
-    metadata: {
-      name: 'e-car.eth',
-      description: 'Get your free Sepolia API key',
-      url: window.location.origin,
-      icons: ['https://e-car.eth.limo/favicon.ico'],
-    },
-    features: { analytics: false, email: false, socials: [] },
-  })
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // UI state machine
-  // ─────────────────────────────────────────────────────────────────────────
-  const el = (id) => document.getElementById(id)
-  const setStep = (n) => {
-    for (let i = 1; i <= 3; i++) {
-      const row = el(`step-${i}`)
-      row.classList.remove('active', 'done')
-      if (i < n) row.classList.add('done')
-      else if (i === n) row.classList.add('active')
-    }
+  const el = (id) => document.getElementById(id);
+  const debugLog = [];
+  function log(...args) {
+    debugLog.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+    if (debugLog.length > 60) debugLog.shift();
+    const pane = el('debug-panel');
+    if (pane) pane.textContent = debugLog.join('\n');
+    try { console.log('[get-key]', ...args); } catch {}
   }
-  const showError = (msg) => {
-    const e = el('error')
-    e.textContent = msg
-    e.style.display = 'block'
+  function showError(msg) {
+    const e = el('error');
+    e.innerHTML = msg;
+    e.classList.add('open');
+    log('ERROR:', msg);
   }
-  const clearError = () => { el('error').style.display = 'none' }
+  function clearError() { el('error').classList.remove('open'); }
 
-  let connectedAddress = null
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const row = el(`step-${i}`);
+      const tag = el(`step-${i}-tag`);
+      row.classList.remove('active', 'done');
+      if (i < n) { row.classList.add('done'); tag.textContent = 'DONE'; }
+      else if (i === n) { row.classList.add('active'); tag.textContent = 'ACTIVE'; }
+      else { tag.textContent = '—'; }
+    });
+  }
 
-  // ─── Connect ────────────────────────────────────────────────────────────
-  el('connect-btn').addEventListener('click', () => appKit.open())
+  // Debug toggle
+  el('debug-toggle').addEventListener('click', () => {
+    const p = el('debug-panel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  });
 
-  // ─── React to connection state via the AppKit subscription ──────────────
-  appKit.subscribeAccount((account) => {
+  // Surface module load failures (e.g. wallet.js 404 / parse error)
+  window.addEventListener('error', (e) => showError('Script error: <code>' + (e.message || 'unknown') + '</code>'));
+  window.addEventListener('unhandledrejection', (e) => showError('Unhandled rejection: <code>' + (e.reason?.message || String(e.reason)) + '</code>'));
+
+  let connectedAddress = null;
+
+  function renderConnected(account) {
     if (account?.isConnected && account.address) {
-      connectedAddress = account.address
-      el('wallet-addr').textContent = account.address.slice(0, 6) + '…' + account.address.slice(-4)
-      el('wallet-info').style.display = 'flex'
-      el('connect-btn').style.display = 'none'
-      el('sign-btn').style.display = 'inline-flex'
-      el('key-result').style.display = 'none'
-      setStep(2)
-      clearError()
+      connectedAddress = account.address;
+      el('wallet-addr').textContent = account.address.slice(0, 8) + '…' + account.address.slice(-6);
+      el('wallet-info').style.display = 'flex';
+      el('connect-btn').style.display = 'none';
+      el('sign-btn').style.display = 'inline-flex';
+      el('key-result').classList.remove('open');
+      setStep(2);
+      clearError();
     } else {
-      connectedAddress = null
-      el('wallet-info').style.display = 'none'
-      el('connect-btn').style.display = 'inline-flex'
-      el('sign-btn').style.display = 'none'
-      el('key-result').style.display = 'none'
-      setStep(1)
+      connectedAddress = null;
+      el('wallet-info').style.display = 'none';
+      el('connect-btn').style.display = 'inline-flex';
+      el('sign-btn').style.display = 'none';
+      el('key-result').classList.remove('open');
+      setStep(1);
     }
-  })
+  }
 
-  // ─── Disconnect ─────────────────────────────────────────────────────────
-  el('disconnect-btn').addEventListener('click', () => appKit.disconnect())
+  // Wait for window.ecarWallet to be defined by wallet.js
+  function waitForBundle(maxMs = 12000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      (function check() {
+        if (window.ecarWallet) return resolve(window.ecarWallet);
+        if (Date.now() - start > maxMs) return reject(new Error('wallet.js never registered window.ecarWallet'));
+        setTimeout(check, 80);
+      })();
+    });
+  }
 
-  // ─── Sign + mint ────────────────────────────────────────────────────────
+  // Bootstrap
+  (async () => {
+    log('booting…');
+    log('API_BASE:', API_BASE);
+    try {
+      const wallet = await waitForBundle();
+      log('wallet bundle ready');
+      await wallet.init({
+        projectId: REOWN_PROJECT_ID,
+        onAccount: (account) => { log('account event', account?.address ?? '(no address)'); renderConnected(account); },
+      });
+      log('appkit initialised, env:', JSON.stringify(wallet.describe()));
+      // Enable button
+      el('connect-btn').disabled = false;
+    } catch (err) {
+      showError('Wallet bundle failed to load — <code>' + (err?.message || err) + '</code>. Reload the page.');
+      el('connect-btn').disabled = true;
+    }
+  })();
+
+  // Connect button
+  el('connect-btn').addEventListener('click', () => {
+    try {
+      log('open modal');
+      window.ecarWallet?.openModal();
+    } catch (err) {
+      showError('Could not open wallet modal: <code>' + (err?.message || err) + '</code>');
+    }
+  });
+
+  // Disconnect
+  el('disconnect-btn').addEventListener('click', () => {
+    log('disconnect');
+    try { window.ecarWallet?.disconnect(); } catch (e) { log('disconnect err', e?.message); }
+  });
+
+  // Sign + mint
   el('sign-btn').addEventListener('click', async () => {
-    if (!connectedAddress) return
-    clearError()
-    const btn = el('sign-btn')
-    const original = btn.innerHTML
-    btn.disabled = true
-    btn.innerHTML = '<span class="spinner"></span> Requesting nonce…'
+    if (!connectedAddress) return;
+    clearError();
+    const btn = el('sign-btn');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span>&nbsp; Requesting nonce…';
 
     try {
-      // 1. Fetch nonce + message
-      const nonceRes = await fetch(`${API_BASE}/auth/nonce?address=${connectedAddress}`)
-      if (!nonceRes.ok) throw new Error(`Nonce request failed (${nonceRes.status})`)
-      const { nonce, message } = await nonceRes.json()
+      log('fetch nonce for', connectedAddress);
+      const nonceRes = await fetch(`${API_BASE}/auth/nonce?address=${connectedAddress}`);
+      if (!nonceRes.ok) throw new Error(`Nonce request failed (${nonceRes.status})`);
+      const { nonce, message } = await nonceRes.json();
+      log('nonce ok', nonce);
 
-      // 2. Ask wallet to sign
-      btn.innerHTML = '<span class="spinner"></span> Waiting for signature…'
-      const provider = appKit.getWalletProvider()
-      if (!provider) throw new Error('No wallet provider available — try reconnecting')
-      const ethersProvider = new BrowserProvider(provider)
-      const signer = await ethersProvider.getSigner()
-      const signature = await signer.signMessage(message)
+      btn.innerHTML = '<span class="spin"></span>&nbsp; Waiting for signature…';
+      const signature = await window.ecarWallet.signMessage(message);
+      log('signed');
 
-      // 3. POST to API to mint the key
-      btn.innerHTML = '<span class="spinner"></span> Minting key…'
+      btn.innerHTML = '<span class="spin"></span>&nbsp; Minting key…';
       const mintRes = await fetch(`${API_BASE}/auth/keys/wallet`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ address: connectedAddress, nonce, signature, message }),
-      })
+      });
       if (!mintRes.ok) {
-        const body = await mintRes.json().catch(() => ({}))
-        throw new Error(body.error || `Mint failed (${mintRes.status})`)
+        const body = await mintRes.json().catch(() => ({}));
+        throw new Error(body.error || `Mint failed (${mintRes.status})`);
       }
-      const result = await mintRes.json()
+      const result = await mintRes.json();
+      log('mint ok, reused:', result.reused);
 
-      // 4. Display key
-      el('api-key-val').textContent = result.apiKey
-      el('meta-tier').textContent = result.tier
-      el('meta-network').textContent = result.network ?? 'sepolia'
-      el('meta-wallet').textContent = result.wallet
+      // Render
+      el('api-key-val').textContent = result.apiKey;
+      el('meta-tier').textContent = result.tier;
+      el('meta-network').textContent = result.network ?? 'sepolia';
+      el('meta-wallet').textContent = (result.wallet || connectedAddress).slice(0, 8) + '…' + (result.wallet || connectedAddress).slice(-6);
+      el('meta-issued').textContent = result.reused ? 'previously' : new Date().toLocaleDateString();
       el('curl-snippet').innerHTML =
-        '<span class="c-comment"># Read live Sepolia vehicle data</span>\n' +
+        '<span class="cmt"># Read live Sepolia vehicle #1</span>\n' +
         'curl ' + API_BASE + '/api/v1/vehicles/1 \\\n' +
-        '  <span class="c-flag">-H</span> <span class="c-str">"x-api-key: ' + result.apiKey + '"</span>'
-      el('key-result').style.display = 'block'
-      setStep(3)
-      btn.style.display = 'none'
+        '  <span class="flag">-H</span> <span class="str">"x-api-key: ' + result.apiKey + '"</span>';
+      el('key-result').classList.add('open');
+      setStep(3);
+      btn.style.display = 'none';
 
       if (result.reused) {
-        const e = el('error')
-        e.style.display = 'block'
-        e.style.background = 'rgba(245,158,11,0.08)'
-        e.style.borderColor = 'rgba(245,158,11,0.3)'
-        e.style.color = '#fbbf24'
-        e.textContent = 'This wallet already has a key — returning the existing one.'
+        const e = el('error');
+        e.innerHTML = 'ℹ This wallet already has a key — returning the existing one.';
+        e.classList.add('open');
+        e.style.background = 'var(--warn-bg)';
+        e.style.borderColor = 'var(--warn)';
+        e.style.color = 'var(--warn)';
       }
     } catch (err) {
-      console.error(err)
-      const msg = err?.shortMessage || err?.message || String(err)
-      // Quietly swallow user rejections
-      if (/reject|denied|User rejected/i.test(msg)) {
-        showError('Signature was cancelled. Click sign again when ready.')
+      const msg = err?.shortMessage || err?.message || String(err);
+      if (/reject|denied|user rejected/i.test(msg)) {
+        showError('Signature was cancelled. Click sign again when ready.');
       } else {
-        showError(msg)
+        showError(msg);
       }
-      btn.innerHTML = original
-      btn.disabled = false
-      return
+      btn.innerHTML = original;
+      btn.disabled = false;
     }
-  })
+  });
 
-  // ─── Copy button ────────────────────────────────────────────────────────
+  // Copy
   el('copy-key').addEventListener('click', async () => {
-    const key = el('api-key-val').textContent
+    const key = el('api-key-val').textContent;
     try {
-      await navigator.clipboard.writeText(key)
-      const b = el('copy-key')
-      b.textContent = 'Copied!'
-      b.classList.add('copied')
-      setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied') }, 1500)
+      await navigator.clipboard.writeText(key);
+      const b = el('copy-key');
+      b.textContent = 'Copied!';
+      b.classList.add('copied');
+      setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 1500);
     } catch {
-      showError('Could not copy — select the key manually')
+      showError('Could not copy to clipboard — select the key manually.');
     }
-  })
+  });
+})();
 </script>
 
 </body>

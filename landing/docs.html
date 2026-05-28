@@ -3,135 +3,126 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Docs — e-car.eth</title>
-<meta name="description" content="Developer documentation for the e-car.eth protocol API: quickstart, authentication, endpoint reference, SDK examples."/>
+<title>Docs · e-car.eth</title>
+<meta name="description" content="Developer documentation for the e-car.eth protocol API — quickstart, authentication, endpoint reference, SDK examples."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#020810;--surface:#060f1e;--card:#0a1628;--border:#0f2040;
-  --cyan:#00d4ff;--green:#00ff88;--purple:#7c3aed;--amber:#f59e0b;--red:#ff5f56;
-  --text:#e2e8f0;--muted:#64748b;--white:#ffffff;
-  --font:'Inter',system-ui,-apple-system,sans-serif;
-  --mono:'SF Mono','Fira Code','Monaco',monospace;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;line-height:1.7}
+  /* docs local — inherits paper-white + lime tokens from styles.css */
 
-.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
-.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
-.orb1{width:600px;height:600px;background:rgba(0,212,255,.05);top:-200px;right:-200px}
-.orb2{width:500px;height:500px;background:rgba(0,255,136,.04);bottom:-150px;left:-150px}
+  /* Layout */
+  .docs-layout { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 56px; padding: calc(var(--nav-h) + 48px) var(--gutter) 96px; position: relative; }
+  @media (max-width: 920px) { .docs-layout { grid-template-columns: 1fr; gap: 24px; padding-top: calc(var(--nav-h) + 24px); } }
 
-nav.top{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid rgba(0,212,255,.1);backdrop-filter:blur(20px);background:rgba(2,8,16,.85)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:1400px;margin:0 auto;padding:0 24px}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000}
-.logo-text{font-weight:700;font-size:18px;color:var(--white)}
-.logo-text span{color:var(--cyan)}
-.nav-links{display:flex;gap:24px;list-style:none;align-items:center}
-.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
-.nav-links a:hover{color:var(--cyan)}
-.nav-links a.active{color:var(--white)}
-.nav-cta{display:flex;gap:12px;align-items:center}
-.badge-sepolia{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--green);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px}
-.btn-nav{background:linear-gradient(135deg,var(--cyan),var(--green));color:#000;padding:8px 20px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:opacity .2s}
-.btn-nav:hover{opacity:.85}
+  /* Sidebar */
+  aside.docs-side { position: sticky; top: calc(var(--nav-h) + 32px); align-self: start; height: calc(100vh - var(--nav-h) - 64px); overflow-y: auto; padding-right: 8px; }
+  @media (max-width: 920px) { aside.docs-side { position: static; height: auto; border-bottom: 1px solid var(--line); padding-bottom: 16px; } }
+  aside.docs-side h4 { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); margin-bottom: 10px; margin-top: 22px; font-weight: 500; }
+  aside.docs-side h4:first-child { margin-top: 0; }
+  aside.docs-side a { display: block; color: var(--mute); font-size: 13.5px; padding: 5px 10px; border-left: 2px solid transparent; transition: color .15s, background .15s, border-color .15s; line-height: 1.4; }
+  aside.docs-side a:hover { color: var(--ink); background: var(--paper-2); }
+  aside.docs-side a.active { color: var(--ink); border-left-color: var(--lime); background: var(--paper-2); font-weight: 500; }
 
-/* Layout: sidebar + content */
-.layout{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:240px 1fr;gap:48px;padding:96px 24px 80px;position:relative;z-index:1}
-@media(max-width:900px){.layout{grid-template-columns:1fr;gap:24px;padding:84px 16px 60px}}
+  /* Page header */
+  .docs-header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--ink); }
+  .docs-tag { display: inline-flex; align-items: center; gap: 10px; padding: 5px 11px; background: var(--paper-2); border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 18px; }
+  .docs-tag .v { color: var(--ink); font-weight: 600; }
+  .docs-header h1 { font-size: clamp(40px, 5vw, 56px); font-weight: 600; letter-spacing: -0.035em; line-height: 1.05; margin-bottom: 16px; }
+  .docs-header .lede { font-size: 17px; color: var(--mute); max-width: 64ch; line-height: 1.6; }
 
-aside{position:sticky;top:96px;align-self:start;height:calc(100vh - 120px);overflow-y:auto;padding-right:8px}
-@media(max-width:900px){aside{position:static;height:auto;border-bottom:1px solid var(--border);padding-bottom:16px}}
-aside h4{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;margin-top:24px}
-aside h4:first-child{margin-top:0}
-aside a{display:block;color:var(--muted);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:6px;transition:color .15s,background .15s;border-left:2px solid transparent;line-height:1.4}
-aside a:hover{color:var(--white);background:rgba(0,212,255,.04)}
-aside a.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,212,255,.06)}
+  /* Doc sections */
+  section.doc { margin-bottom: 64px; scroll-margin-top: calc(var(--nav-h) + 24px); }
+  section.doc h2 { font-size: 30px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 16px; display: flex; align-items: baseline; gap: 12px; }
+  section.doc h2 a.anchor { color: var(--mute-2); font-size: 16px; opacity: 0; transition: opacity .15s; }
+  section.doc h2:hover a.anchor { opacity: 1; }
+  section.doc h3 { font-size: 17px; font-weight: 600; color: var(--ink); margin-top: 28px; margin-bottom: 12px; letter-spacing: -0.015em; }
+  section.doc p { color: var(--ink-2); margin-bottom: 14px; max-width: 72ch; font-size: 14.5px; line-height: 1.7; }
+  section.doc ul { margin: 8px 0 14px 22px; color: var(--ink-2); font-size: 14.5px; line-height: 1.7; list-style: disc; }
+  section.doc ul li { margin-bottom: 4px; }
+  section.doc a { color: var(--ink); border-bottom: 1px solid var(--mute); }
+  section.doc a:hover { color: var(--mute); }
 
-main{min-width:0}
+  /* Inline code */
+  section.doc code { font-family: var(--mono); font-size: 12.5px; background: var(--paper-3); color: var(--ink); padding: 1px 6px; border-radius: 3px; }
 
-.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
-.page-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
-h1{font-size:42px;font-weight:900;letter-spacing:-1px;color:var(--white);line-height:1.1;margin-bottom:14px}
-.lede{font-size:18px;color:var(--muted);max-width:680px}
+  /* Code blocks */
+  section.doc pre { background: var(--ink); border: 1px solid var(--ink); overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.7; color: #e7e3d2; margin: 14px 0; position: relative; padding: 18px 22px; }
+  section.doc pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .tok-cmt  { color: #7e7e75; }
+  .tok-str  { color: #e7e3d2; }
+  .tok-num  { color: #ffd166; }
+  .tok-prop { color: #cfd6e8; }
+  .tok-kw   { color: var(--lime); }
+  .tok-flag { color: var(--lime); }
+  .tok-fn   { color: #cfd6e8; }
+  .tok-type { color: #ffd166; }
 
-section.doc{margin-bottom:64px;scroll-margin-top:96px}
-section.doc h2{font-size:28px;font-weight:800;letter-spacing:-.5px;color:var(--white);margin-bottom:16px;display:flex;align-items:center;gap:10px}
-section.doc h2 a.anchor{color:var(--muted);text-decoration:none;opacity:0;transition:opacity .15s;font-size:18px}
-section.doc h2:hover a.anchor{opacity:1}
-section.doc h3{font-size:18px;font-weight:700;color:var(--white);margin-top:28px;margin-bottom:12px}
-section.doc p{color:var(--text);margin-bottom:16px;max-width:760px}
-section.doc ul{margin:8px 0 16px 20px;color:var(--text)}
-section.doc ul li{margin-bottom:6px}
-section.doc a{color:var(--cyan);text-decoration:none}
-section.doc a:hover{text-decoration:underline}
+  pre .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: var(--paper); padding: 4px 10px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; opacity: 0; transition: opacity .15s, background .15s; }
+  pre:hover .copy-btn { opacity: 1; }
+  pre .copy-btn:hover { background: rgba(212,255,63,.16); border-color: var(--lime); color: var(--lime); }
+  pre .copy-btn.copied { opacity: 1; background: var(--lime); color: var(--lime-ink); border-color: var(--lime); }
 
-code{font-family:var(--mono);font-size:13px;background:rgba(0,212,255,.08);color:var(--cyan);padding:2px 6px;border-radius:4px;border:1px solid rgba(0,212,255,.15)}
-pre{background:#000;border:1px solid var(--border);border-radius:10px;padding:16px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.6;color:#cbd5e1;margin:14px 0;position:relative}
-pre code{background:none;color:inherit;padding:0;border:none;font-size:inherit}
-.tok-kw{color:#a78bfa}.tok-str{color:var(--green)}.tok-num{color:#fbbf24}.tok-cmt{color:#475569;font-style:italic}.tok-fn{color:var(--cyan)}.tok-type{color:#f472b6}.tok-flag{color:var(--cyan)}.tok-prop{color:#fbbf24}
+  /* Tables */
+  section.doc table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; border: 1px solid var(--line); }
+  section.doc th, section.doc td { padding: 11px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  section.doc th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); font-weight: 500; background: var(--paper-2); border-bottom: 1px solid var(--line-2); }
+  section.doc td a { border-bottom: 1px dotted var(--mute); }
+  section.doc tr:last-child td { border-bottom: none; }
+  section.doc td code { font-size: 12px; }
 
-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
-th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;color:var(--text);vertical-align:top}
-th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.5px;text-transform:uppercase}
-td code{font-size:12px}
+  /* Method cards (endpoint reference) */
+  .method-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0; margin: 16px 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .method-card { display: block; padding: 14px 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--ink); border-bottom-color: var(--line) !important; transition: background .15s; }
+  .method-card:hover { background: var(--paper-2); border-bottom-color: var(--line) !important; }
+  .method-row { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px; margin-bottom: 4px; }
+  .verb { font-weight: 600; font-size: 10px; padding: 2px 7px; border-radius: 0; letter-spacing: .08em; }
+  .verb-get  { background: var(--ok-bg);   color: var(--ok);   border: 1px solid var(--ok); }
+  .verb-post { background: var(--lime);    color: var(--lime-ink); }
+  .verb-put  { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
+  .verb-del  { background: #fdecec;        color: var(--err);  border: 1px solid var(--err); }
+  .method-path { color: var(--ink); }
+  .method-desc { color: var(--mute); font-size: 12.5px; margin-top: 2px; line-height: 1.5; }
 
-.callout{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:16px 20px;margin:20px 0;color:var(--text);font-size:14px}
-.callout strong{color:var(--cyan)}
-.callout.warn{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.25)}
-.callout.warn strong{color:var(--amber)}
+  .tag-pill { display: inline-block; padding: 1px 6px; font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-left: 4px; }
+  .tag-public { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+  .tag-auth   { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
 
-.method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0}
-.method-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s;display:block}
-.method-card:hover{border-color:rgba(0,212,255,.4);transform:translateY(-2px);text-decoration:none}
-.method-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;margin-bottom:4px}
-.verb{font-weight:800;font-size:11px;padding:2px 8px;border-radius:4px}
-.verb-get{background:rgba(0,255,136,.12);color:var(--green)}
-.verb-post{background:rgba(0,212,255,.12);color:var(--cyan)}
-.verb-put{background:rgba(245,158,11,.12);color:var(--amber)}
-.verb-del{background:rgba(255,95,86,.12);color:var(--red)}
-.method-path{color:var(--text)}
-.method-desc{color:var(--muted);font-size:13px;margin-top:2px}
-
-.copy-btn{position:absolute;top:8px;right:8px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);opacity:0;transition:opacity .15s,background .15s}
-pre:hover .copy-btn{opacity:1}
-.copy-btn:hover{background:rgba(0,212,255,.18)}
-.copy-btn.copied{background:rgba(0,255,136,.15);color:var(--green);border-color:rgba(0,255,136,.3);opacity:1}
-
-.tag-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--mono);margin-left:6px}
-.tag-auth{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
-.tag-public{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+  /* Callouts */
+  .callout { padding: 14px 18px; margin: 18px 0; background: var(--paper-2); border-left: 3px solid var(--lime); font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+  .callout strong { color: var(--ink); }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+  .callout.warn strong { color: var(--warn); }
 </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-
+<!-- ───── NAV ───── -->
 <nav class="top">
   <div class="nav-inner">
-    <a href="index.html" class="logo">
-      <div class="logo-icon">⚡</div>
-      <div class="logo-text">e-car<span>.eth</span></div>
+    <a href="index.html" class="brand" aria-label="e-car.eth home">
+      <span class="dot-square"></span>e-car<span class="eth">.eth</span>
     </a>
     <ul class="nav-links">
-      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#features">Protocol</a></li>
+      <li><a href="index.html#oem">OEM</a></li>
+      <li><a href="index.html#contracts">Contracts</a></li>
       <li><a href="index.html#pricing">Pricing</a></li>
-      <li><a href="docs.html" class="active">Docs</a></li>
-      <li><a href="https://earnest-harmony-e-car.up.railway.app/docs" target="_blank" rel="noopener">API Reference ↗</a></li>
+      <li><a href="docs.html" style="color: var(--ink); font-weight: 500;">Docs</a></li>
     </ul>
-    <div class="nav-cta">
-      <span class="badge-sepolia">● Sepolia</span>
-      <a href="get-key.html" class="btn-nav">Get Free Key →</a>
+    <div class="nav-right">
+      <span class="status-pill"><span class="pulse"></span>SEPOLIA · 10 CONTRACTS</span>
+      <a href="https://earnest-harmony-e-car.up.railway.app/docs" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Swagger ↗</a>
+      <a href="get-key.html" class="btn btn-accent btn-sm">Get Key<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
     </div>
   </div>
 </nav>
 
-<div class="layout">
+<!-- ───── DOCS LAYOUT ───── -->
+<div class="docs-layout">
 
-  <aside id="sidebar">
+  <aside class="docs-side" id="sidebar">
     <h4>Get Started</h4>
     <a href="#overview">Overview</a>
     <a href="#quickstart">5-min Quickstart</a>
@@ -164,8 +155,8 @@ pre:hover .copy-btn{opacity:1}
 
   <main>
 
-    <div class="page-header">
-      <div class="page-tag">Documentation · v0.1</div>
+    <div class="docs-header">
+      <div class="docs-tag">DOCUMENTATION <span class="v">·</span> <span class="v">v0.10.4</span></div>
       <h1>Build on the e-car.eth protocol.</h1>
       <p class="lede">REST, GraphQL, and WebSocket endpoints for vehicle identity, battery passports, payments, and OEM batch operations — all backed by Ethereum and ENS. Free Sepolia testnet access via wallet connect.</p>
     </div>
@@ -179,7 +170,7 @@ pre:hover .copy-btn{opacity:1}
         <li><strong>Operators</strong> — register charging stations, run sessions, settle V2G energy exports</li>
         <li><strong>Developers</strong> — read vehicle, battery, and station data on-chain via a stable HTTP surface</li>
       </ul>
-      <div class="callout"><strong>Base URL:</strong> <code>https://earnest-harmony-e-car.up.railway.app</code> · all routes under <code>/api/v1/*</code></div>
+      <div class="callout"><strong>Base URL:</strong> <code>https://earnest-harmony-e-car.up.railway.app</code> — all routes under <code>/api/v1/*</code></div>
       <div class="callout warn"><strong>Network:</strong> e-car.eth is currently live on <strong>Ethereum Sepolia</strong> testnet. Mainnet launch follows the OEM pilot.</div>
     </section>
 
@@ -265,7 +256,7 @@ curl <span class="tok-flag">-X</span> POST <span class="tok-str">https://earnest
       <h2>Merkle Batches — OEM Path <a href="#batches" class="anchor">#</a></h2>
       <p>The flagship OEM workflow. Submit up to <strong>100,000 VINs in a single API call</strong>; the server builds a Merkle tree, returns the root + per-VIN proofs, and the OEM commits the root on-chain in one transaction. Each vehicle later claims its NFT individually using its proof.</p>
 
-      <div class="callout"><strong>Verified throughput:</strong> 100K VINs → preauthorized in ~7s · per-proof lookup ~4ms · backed by SQLite (survives restarts).</div>
+      <div class="callout"><strong>Verified throughput:</strong> 100K VINs preauthorized in ~7.8s · per-proof lookup ~4ms · backed by SQLite (survives restarts).</div>
 
       <div class="method-grid">
         <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/vehicles/batch/preauthorize</span></div><div class="method-desc">Submit up to 100K VINs → returns root <span class="tag-pill tag-auth">auth</span></div></a>
@@ -529,34 +520,34 @@ ws.<span class="tok-fn">addEventListener</span>(<span class="tok-str">'message'<
 <script>
   // Copy buttons on every <pre>
   document.querySelectorAll('pre').forEach((pre) => {
-    const btn = document.createElement('button')
-    btn.className = 'copy-btn'
-    btn.textContent = 'Copy'
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
     btn.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(pre.innerText.replace(/\bCopy\b\s*$/, '').trim())
-        btn.textContent = 'Copied'
-        btn.classList.add('copied')
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied') }, 1400)
+        await navigator.clipboard.writeText(pre.innerText.replace(/\bCopy\b\s*$/, '').trim());
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1400);
       } catch {}
-    })
-    pre.appendChild(btn)
-  })
+    });
+    pre.appendChild(btn);
+  });
 
   // Scrollspy: highlight active sidebar link
-  const sections = [...document.querySelectorAll('section.doc')]
-  const links = new Map([...document.querySelectorAll('aside a')]
-    .map(a => [a.getAttribute('href').slice(1), a]))
+  const sections = [...document.querySelectorAll('section.doc')];
+  const links = new Map([...document.querySelectorAll('aside.docs-side a')]
+    .map(a => [a.getAttribute('href').slice(1), a]));
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        const id = e.target.id
-        links.forEach(a => a.classList.remove('active'))
-        links.get(id)?.classList.add('active')
+        const id = e.target.id;
+        links.forEach(a => a.classList.remove('active'));
+        links.get(id)?.classList.add('active');
       }
-    })
-  }, { rootMargin: '-25% 0px -65% 0px' })
-  sections.forEach(s => observer.observe(s))
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });
+  sections.forEach(s => observer.observe(s));
 </script>
 
 </body>

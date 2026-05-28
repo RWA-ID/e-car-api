@@ -1,0 +1,17 @@
+{
+  "name": "e-car-wallet-bundle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-contained Reown AppKit bundle for get-key.html. Compiled to ../wallet.js with esbuild so the IPFS landing has no runtime CDN dependency.",
+  "scripts": {
+    "build": "esbuild wallet.entry.js --bundle --format=esm --target=es2022 --platform=browser --minify --outfile=../wallet.js --legal-comments=none"
+  },
+  "dependencies": {
+    "@reown/appkit": "^1.7.3",
+    "@reown/appkit-adapter-ethers": "^1.7.3",
+    "ethers": "^6.13.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

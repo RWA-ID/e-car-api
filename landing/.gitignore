@@ -1,0 +1,3 @@
+wallet-src/node_modules
+wallet-src/package-lock.json
+*.db
