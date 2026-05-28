@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Docs — e-car.eth</title>
+<meta name="description" content="Developer documentation for the e-car.eth protocol API: quickstart, authentication, endpoint reference, SDK examples."/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#020810;--surface:#060f1e;--card:#0a1628;--border:#0f2040;
+  --cyan:#00d4ff;--green:#00ff88;--purple:#7c3aed;--amber:#f59e0b;--red:#ff5f56;
+  --text:#e2e8f0;--muted:#64748b;--white:#ffffff;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','Fira Code','Monaco',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;line-height:1.7}
+
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.orb1{width:600px;height:600px;background:rgba(0,212,255,.05);top:-200px;right:-200px}
+.orb2{width:500px;height:500px;background:rgba(0,255,136,.04);bottom:-150px;left:-150px}
+
+nav.top{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid rgba(0,212,255,.1);backdrop-filter:blur(20px);background:rgba(2,8,16,.85)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:1400px;margin:0 auto;padding:0 24px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000}
+.logo-text{font-weight:700;font-size:18px;color:var(--white)}
+.logo-text span{color:var(--cyan)}
+.nav-links{display:flex;gap:24px;list-style:none;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a.active{color:var(--white)}
+.nav-cta{display:flex;gap:12px;align-items:center}
+.badge-sepolia{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--green);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px}
+.btn-nav{background:linear-gradient(135deg,var(--cyan),var(--green));color:#000;padding:8px 20px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:opacity .2s}
+.btn-nav:hover{opacity:.85}
+
+/* Layout: sidebar + content */
+.layout{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:240px 1fr;gap:48px;padding:96px 24px 80px;position:relative;z-index:1}
+@media(max-width:900px){.layout{grid-template-columns:1fr;gap:24px;padding:84px 16px 60px}}
+
+aside{position:sticky;top:96px;align-self:start;height:calc(100vh - 120px);overflow-y:auto;padding-right:8px}
+@media(max-width:900px){aside{position:static;height:auto;border-bottom:1px solid var(--border);padding-bottom:16px}}
+aside h4{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;margin-top:24px}
+aside h4:first-child{margin-top:0}
+aside a{display:block;color:var(--muted);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:6px;transition:color .15s,background .15s;border-left:2px solid transparent;line-height:1.4}
+aside a:hover{color:var(--white);background:rgba(0,212,255,.04)}
+aside a.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,212,255,.06)}
+
+main{min-width:0}
+
+.page-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.page-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+h1{font-size:42px;font-weight:900;letter-spacing:-1px;color:var(--white);line-height:1.1;margin-bottom:14px}
+.lede{font-size:18px;color:var(--muted);max-width:680px}
+
+section.doc{margin-bottom:64px;scroll-margin-top:96px}
+section.doc h2{font-size:28px;font-weight:800;letter-spacing:-.5px;color:var(--white);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+section.doc h2 a.anchor{color:var(--muted);text-decoration:none;opacity:0;transition:opacity .15s;font-size:18px}
+section.doc h2:hover a.anchor{opacity:1}
+section.doc h3{font-size:18px;font-weight:700;color:var(--white);margin-top:28px;margin-bottom:12px}
+section.doc p{color:var(--text);margin-bottom:16px;max-width:760px}
+section.doc ul{margin:8px 0 16px 20px;color:var(--text)}
+section.doc ul li{margin-bottom:6px}
+section.doc a{color:var(--cyan);text-decoration:none}
+section.doc a:hover{text-decoration:underline}
+
+code{font-family:var(--mono);font-size:13px;background:rgba(0,212,255,.08);color:var(--cyan);padding:2px 6px;border-radius:4px;border:1px solid rgba(0,212,255,.15)}
+pre{background:#000;border:1px solid var(--border);border-radius:10px;padding:16px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.6;color:#cbd5e1;margin:14px 0;position:relative}
+pre code{background:none;color:inherit;padding:0;border:none;font-size:inherit}
+.tok-kw{color:#a78bfa}.tok-str{color:var(--green)}.tok-num{color:#fbbf24}.tok-cmt{color:#475569;font-style:italic}.tok-fn{color:var(--cyan)}.tok-type{color:#f472b6}.tok-flag{color:var(--cyan)}.tok-prop{color:#fbbf24}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;color:var(--text);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+td code{font-size:12px}
+
+.callout{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:16px 20px;margin:20px 0;color:var(--text);font-size:14px}
+.callout strong{color:var(--cyan)}
+.callout.warn{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.25)}
+.callout.warn strong{color:var(--amber)}
+
+.method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0}
+.method-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s;display:block}
+.method-card:hover{border-color:rgba(0,212,255,.4);transform:translateY(-2px);text-decoration:none}
+.method-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;margin-bottom:4px}
+.verb{font-weight:800;font-size:11px;padding:2px 8px;border-radius:4px}
+.verb-get{background:rgba(0,255,136,.12);color:var(--green)}
+.verb-post{background:rgba(0,212,255,.12);color:var(--cyan)}
+.verb-put{background:rgba(245,158,11,.12);color:var(--amber)}
+.verb-del{background:rgba(255,95,86,.12);color:var(--red)}
+.method-path{color:var(--text)}
+.method-desc{color:var(--muted);font-size:13px;margin-top:2px}
+
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);opacity:0;transition:opacity .15s,background .15s}
+pre:hover .copy-btn{opacity:1}
+.copy-btn:hover{background:rgba(0,212,255,.18)}
+.copy-btn.copied{background:rgba(0,255,136,.15);color:var(--green);border-color:rgba(0,255,136,.3);opacity:1}
+
+.tag-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--mono);margin-left:6px}
+.tag-auth{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.tag-public{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav class="top">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">e-car<span>.eth</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#pricing">Pricing</a></li>
+      <li><a href="docs.html" class="active">Docs</a></li>
+      <li><a href="https://earnest-harmony-e-car.up.railway.app/docs" target="_blank" rel="noopener">API Reference ↗</a></li>
+    </ul>
+    <div class="nav-cta">
+      <span class="badge-sepolia">● Sepolia</span>
+      <a href="get-key.html" class="btn-nav">Get Free Key →</a>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <aside id="sidebar">
+    <h4>Get Started</h4>
+    <a href="#overview">Overview</a>
+    <a href="#quickstart">5-min Quickstart</a>
+    <a href="#authentication">Authentication</a>
+
+    <h4>Concepts</h4>
+    <a href="#vehicles">Vehicle Identity</a>
+    <a href="#batches">Merkle Batches (OEM)</a>
+    <a href="#battery">Battery Passport</a>
+    <a href="#charging">Charging Sessions</a>
+    <a href="#brands">Brand Namespaces</a>
+    <a href="#fleet">Fleet Management</a>
+    <a href="#carbon">Carbon Credits</a>
+
+    <h4>SDKs</h4>
+    <a href="#sdk-ts">TypeScript SDK</a>
+    <a href="#sdk-voice">Voice SDK</a>
+
+    <h4>Tools</h4>
+    <a href="#scripts">Quickstart Script</a>
+    <a href="#http-collection">.http / Postman</a>
+    <a href="#websocket">WebSocket Events</a>
+    <a href="#graphql">GraphQL</a>
+
+    <h4>Reference</h4>
+    <a href="#errors">Error Codes</a>
+    <a href="#rate-limits">Rate Limits</a>
+    <a href="#contracts">Sepolia Contracts</a>
+  </aside>
+
+  <main>
+
+    <div class="page-header">
+      <div class="page-tag">Documentation · v0.1</div>
+      <h1>Build on the e-car.eth protocol.</h1>
+      <p class="lede">REST, GraphQL, and WebSocket endpoints for vehicle identity, battery passports, payments, and OEM batch operations — all backed by Ethereum and ENS. Free Sepolia testnet access via wallet connect.</p>
+    </div>
+
+    <!-- ─────────────────────── OVERVIEW ─────────────────────── -->
+    <section class="doc" id="overview">
+      <h2>Overview <a href="#overview" class="anchor">#</a></h2>
+      <p>The e-car.eth API is the developer-facing surface for the protocol's smart contracts on Ethereum Sepolia. It serves three audiences:</p>
+      <ul>
+        <li><strong>OEMs</strong> — preauthorize vehicle batches, mint NFT identities, manage brand namespaces</li>
+        <li><strong>Operators</strong> — register charging stations, run sessions, settle V2G energy exports</li>
+        <li><strong>Developers</strong> — read vehicle, battery, and station data on-chain via a stable HTTP surface</li>
+      </ul>
+      <div class="callout"><strong>Base URL:</strong> <code>https://earnest-harmony-e-car.up.railway.app</code> · all routes under <code>/api/v1/*</code></div>
+      <div class="callout warn"><strong>Network:</strong> e-car.eth is currently live on <strong>Ethereum Sepolia</strong> testnet. Mainnet launch follows the OEM pilot.</div>
+    </section>
+
+    <!-- ─────────────────────── QUICKSTART ─────────────────────── -->
+    <section class="doc" id="quickstart">
+      <h2>5-min Quickstart <a href="#quickstart" class="anchor">#</a></h2>
+      <p>From zero to a live on-chain read in five minutes.</p>
+
+      <h3>1. Get an API key</h3>
+      <p>Visit <a href="get-key.html">get-key.html</a> and connect any Ethereum wallet — the key is issued instantly after one signature. No email, no waitlist.</p>
+
+      <h3>2. Read a live Sepolia vehicle</h3>
+<pre><code><span class="tok-cmt"># Vehicle #1 — Tesla Model 3 (2024), soulbound on Sepolia</span>
+curl <span class="tok-str">https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/1</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"x-api-key: ecar_fre_..."</span></code></pre>
+
+      <h3>3. You should see</h3>
+<pre><code>{
+  <span class="tok-prop">"tokenId"</span>: <span class="tok-str">"1"</span>,
+  <span class="tok-prop">"manufacturer"</span>: <span class="tok-str">"Tesla"</span>,
+  <span class="tok-prop">"model"</span>: <span class="tok-str">"Model 3"</span>,
+  <span class="tok-prop">"year"</span>: <span class="tok-num">2024</span>,
+  <span class="tok-prop">"batteryCapacityKwh"</span>: <span class="tok-str">"82000"</span>,
+  <span class="tok-prop">"locked"</span>: <span class="tok-kw">true</span>,
+  <span class="tok-prop">"owner"</span>: <span class="tok-str">"0x5f11a48230f7CdaB91A2361576239091E4b1165b"</span>
+}</code></pre>
+
+      <p>That's it — you just did a live Ethereum read through a single HTTP call. From here you can register vehicles, preauthorize batches, or initiate charging payments. Pick your path below.</p>
+    </section>
+
+    <!-- ─────────────────────── AUTHENTICATION ─────────────────────── -->
+    <section class="doc" id="authentication">
+      <h2>Authentication <a href="#authentication" class="anchor">#</a></h2>
+      <p>All write endpoints require an API key in the <code>x-api-key</code> header. Most read endpoints are public.</p>
+
+      <h3>Wallet-gated self-serve (recommended)</h3>
+      <p>Free tier: one key per wallet, 10K req/month, 60 req/min, Sepolia only.</p>
+<pre><code><span class="tok-cmt"># 1. Request a nonce + SIWE message bound to your address</span>
+curl <span class="tok-str">https://earnest-harmony-e-car.up.railway.app/auth/nonce?address=0xYourAddr</span>
+
+<span class="tok-cmt"># 2. Sign the returned `message` with your wallet (personal_sign / EIP-191)</span>
+<span class="tok-cmt"># 3. POST the signature back to claim your key</span>
+curl <span class="tok-flag">-X</span> POST <span class="tok-str">https://earnest-harmony-e-car.up.railway.app/auth/keys/wallet</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"Content-Type: application/json"</span> \
+  <span class="tok-flag">-d</span> <span class="tok-str">'{"address":"0x…","nonce":"…","signature":"0x…","message":"…"}'</span></code></pre>
+      <p>The browser flow at <a href="get-key.html">get-key.html</a> wraps this in a one-click experience via Reown AppKit.</p>
+
+      <h3>OEM &amp; Enterprise tier (admin-issued)</h3>
+      <p>Paid tiers require manual approval. After your pilot is accepted, the team mints a key via the admin endpoint and sends it through a secure channel.</p>
+
+      <h3>Inspect a key</h3>
+<pre><code>curl <span class="tok-str">https://earnest-harmony-e-car.up.railway.app/auth/keys/info</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"x-api-key: ecar_…"</span></code></pre>
+      <p>Returns the tier, label, limits, monthly usage, and creation date.</p>
+    </section>
+
+    <!-- ─────────────────────── VEHICLES ─────────────────────── -->
+    <section class="doc" id="vehicles">
+      <h2>Vehicle Identity <a href="#vehicles" class="anchor">#</a></h2>
+      <p>Vehicles are minted as ERC-721 NFTs (with optional ERC-5192 soulbound lock) under the <code>VehicleIdentity.sol</code> contract. Each token stores a privacy-preserving VIN hash, manufacturer, model, year, and battery capacity.</p>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/vehicles/:tokenId</span></div><div class="method-desc">Read live vehicle data + current owner <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/vehicles</span></div><div class="method-desc">Register a single vehicle (returns unsigned tx) <span class="tag-pill tag-auth">auth</span></div></a>
+      </div>
+
+      <h3>Register a vehicle</h3>
+<pre><code>curl <span class="tok-flag">-X</span> POST <span class="tok-str">https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"x-api-key: ecar_..."</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"Content-Type: application/json"</span> \
+  <span class="tok-flag">-d</span> <span class="tok-str">'{
+    "vin":                "5YJSA1H21FFP12345",
+    "manufacturer":       "Tesla",
+    "model":              "Model 3",
+    "year":               2024,
+    "batteryCapacityKwh": 82
+  }'</span></code></pre>
+      <p>Returns an unsigned transaction the OEM signs and broadcasts with their wallet (or multisig). The VIN is stored on-chain as <code>keccak256(VIN)</code> — full VINs never leave the OEM's environment.</p>
+    </section>
+
+    <!-- ─────────────────────── BATCHES ─────────────────────── -->
+    <section class="doc" id="batches">
+      <h2>Merkle Batches — OEM Path <a href="#batches" class="anchor">#</a></h2>
+      <p>The flagship OEM workflow. Submit up to <strong>100,000 VINs in a single API call</strong>; the server builds a Merkle tree, returns the root + per-VIN proofs, and the OEM commits the root on-chain in one transaction. Each vehicle later claims its NFT individually using its proof.</p>
+
+      <div class="callout"><strong>Verified throughput:</strong> 100K VINs → preauthorized in ~7s · per-proof lookup ~4ms · backed by SQLite (survives restarts).</div>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/vehicles/batch/preauthorize</span></div><div class="method-desc">Submit up to 100K VINs → returns root <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/vehicles/batch/:id</span></div><div class="method-desc">Summary (counts, root, metadata) <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/vehicles/batch/:id/proof/:vin</span></div><div class="method-desc">Single VIN Merkle proof <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/vehicles/batch/:id/proofs</span></div><div class="method-desc">Paginated bulk proof export <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/vehicles/batch/:id/transfer</span></div><div class="method-desc">Generate bulk safeTransferFrom calldata <span class="tag-pill tag-auth">auth</span></div></a>
+      </div>
+
+      <h3>Preauthorize 100K vehicles</h3>
+<pre><code>curl <span class="tok-flag">-X</span> POST <span class="tok-str">…/api/v1/vehicles/batch/preauthorize</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"x-api-key: ecar_oem_…"</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"Content-Type: application/json"</span> \
+  <span class="tok-flag">-d</span> <span class="tok-str">'{
+    "vins": ["5YJSA1H21FFP00001", ...],
+    "manufacturer":       "Tesla",
+    "model":              "Model 3",
+    "year":               2026,
+    "batteryCapacityKwh": 82,
+    "soulbound":          true,
+    "overrides":          [{ "vin": "5YJSA1H21FFP00002", "soulbound": false }]
+  }'</span></code></pre>
+
+      <p>Response includes <code>batchId</code>, <code>merkleRoot</code>, per-soulbound counts, and an on-chain submission hint pointing at <code>MerkleOracle.submitRoot(batchId, root)</code>.</p>
+
+      <h3>Fetch a proof at claim time</h3>
+<pre><code>curl <span class="tok-str">…/api/v1/vehicles/batch/batch_a1b2.../proof/5YJSA1H21FFP00001</span></code></pre>
+      <p>The buyer (or OEM frontend) reads this proof and calls the contract's claim method. <em>Anyone</em> can fetch a proof — the security model is the on-chain Merkle root, not API access.</p>
+
+      <h3>Bulk transfer at delivery</h3>
+<pre><code>curl <span class="tok-flag">-X</span> POST <span class="tok-str">…/api/v1/vehicles/batch/batch_a1b2.../transfer</span> \
+  <span class="tok-flag">-H</span> <span class="tok-str">"x-api-key: ecar_oem_…"</span> \
+  <span class="tok-flag">-d</span> <span class="tok-str">'{
+    "from": "0xOEM_TREASURY",
+    "transfers": [
+      { "tokenId": "1", "to": "0xBUYER_A" },
+      { "tokenId": "2", "to": "0xBUYER_B" }
+    ]
+  }'</span></code></pre>
+      <p>Returns up to 1,000 unsigned <code>safeTransferFrom</code> transactions at a time — multicall them on-chain for one-tx batch delivery.</p>
+    </section>
+
+    <!-- ─────────────────────── BATTERY ─────────────────────── -->
+    <section class="doc" id="battery">
+      <h2>Battery Passport <a href="#battery" class="anchor">#</a></h2>
+      <p>The <code>BatteryPassport.sol</code> contract maintains an append-only on-chain history of each battery's state-of-health (SoH), cycle count, and a Merkle root anchoring off-chain telemetry. EU Battery Regulation 2023/1542 ready.</p>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/battery/:vehicleId</span></div><div class="method-desc">Latest passport entry <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/battery/:vehicleId/history</span></div><div class="method-desc">Full append-only history <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/battery/:vehicleId/verify</span></div><div class="method-desc">Verify a telemetry Merkle proof <span class="tag-pill tag-public">public</span></div></a>
+      </div>
+
+<pre><code>curl <span class="tok-str">…/api/v1/battery/1</span>
+<span class="tok-cmt"># { "vehicleId": "1", "stateOfHealth": 91, "cycleCount": 287,
+#   "merkleRoot": "0x9c014e…", "timestamp": "1774575252" }</span></code></pre>
+    </section>
+
+    <!-- ─────────────────────── CHARGING ─────────────────────── -->
+    <section class="doc" id="charging">
+      <h2>Charging Sessions <a href="#charging" class="anchor">#</a></h2>
+      <p>Register stations on-chain, initiate sessions with auto-escrowed funds, finalize with actual kWh, and settle instantly. Any token whitelisted by the operator works (ETH, USDC, or any ERC-20).</p>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/charging/stations</span></div><div class="method-desc">List active stations <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/charging/stations</span></div><div class="method-desc">Register a station <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/charging/sessions</span></div><div class="method-desc">Initiate session (creates escrow) <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/charging/sessions/:id/finalize</span></div><div class="method-desc">Finalize with actual kWh <span class="tag-pill tag-auth">auth</span></div></a>
+      </div>
+    </section>
+
+    <!-- ─────────────────────── BRANDS ─────────────────────── -->
+    <section class="doc" id="brands">
+      <h2>Brand Namespaces <a href="#brands" class="anchor">#</a></h2>
+      <p>OEMs claim <code>brand.e-car.eth</code> via a 10 ETH one-time fee. The claim deploys a dedicated <code>BrandRegistry</code> + 2-of-2 multisig, granting full control over vehicle, station, and subname registration under that namespace.</p>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/brands/:brand</span></div><div class="method-desc">Namespace info + reserved flag <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/brands/:brand/claim</span></div><div class="method-desc">Initiate claim (returns unsigned tx) <span class="tag-pill tag-auth">auth</span></div></a>
+      </div>
+    </section>
+
+    <!-- ─────────────────────── FLEET ─────────────────────── -->
+    <section class="doc" id="fleet">
+      <h2>Fleet Management <a href="#fleet" class="anchor">#</a></h2>
+      <p>Register multi-vehicle fleets under <code>fleet.e-car.eth</code>, attach geofence rules on-chain, and pull aggregated payment summaries across all vehicles + vendors.</p>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/fleet</span></div><div class="method-desc">Register fleet <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-put">PUT</span><span class="method-path">/api/v1/fleet/:id/geofence</span></div><div class="method-desc">Set geofence rules <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/fleet/:id/payments</span></div><div class="method-desc">Aggregated 30-day spend <span class="tag-pill tag-auth">auth</span></div></a>
+      </div>
+    </section>
+
+    <!-- ─────────────────────── CARBON ─────────────────────── -->
+    <section class="doc" id="carbon">
+      <h2>Carbon Credits <a href="#carbon" class="anchor">#</a></h2>
+      <p>EV mileage → tokenized carbon credits (ERC-1155). Mint credits from oracle-attested odometer reads, retire them with on-chain certificates for ESG compliance, or trade them on any marketplace.</p>
+
+      <div class="method-grid">
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-get">GET</span><span class="method-path">/api/v1/carbon/:vehicleId</span></div><div class="method-desc">Credit balance + history <span class="tag-pill tag-public">public</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/carbon/:vehicleId/mint</span></div><div class="method-desc">Mint credits from verified mileage <span class="tag-pill tag-auth">auth</span></div></a>
+        <a href="#" class="method-card"><div class="method-row"><span class="verb verb-post">POST</span><span class="method-path">/api/v1/carbon/:vehicleId/retire</span></div><div class="method-desc">Retire credits + issue certificate <span class="tag-pill tag-auth">auth</span></div></a>
+      </div>
+    </section>
+
+    <!-- ─────────────────────── SDK TS ─────────────────────── -->
+    <section class="doc" id="sdk-ts">
+      <h2>TypeScript SDK <a href="#sdk-ts" class="anchor">#</a></h2>
+<pre><code>npm install @e-car-eth/sdk</code></pre>
+<pre><code><span class="tok-kw">import</span> { <span class="tok-type">ECarClient</span> } <span class="tok-kw">from</span> <span class="tok-str">'@e-car-eth/sdk'</span>
+
+<span class="tok-kw">const</span> client = <span class="tok-kw">new</span> <span class="tok-type">ECarClient</span>({
+  apiKey:  <span class="tok-str">'ecar_fre_…'</span>,
+  network: <span class="tok-str">'sepolia'</span>, <span class="tok-cmt">// mainnet at pilot completion</span>
+})
+
+<span class="tok-cmt">// Live chain read</span>
+<span class="tok-kw">const</span> vehicle  = <span class="tok-kw">await</span> client.vehicles.<span class="tok-fn">get</span>(<span class="tok-num">1n</span>)
+<span class="tok-kw">const</span> passport = <span class="tok-kw">await</span> client.battery.<span class="tok-fn">getPassport</span>(<span class="tok-num">1n</span>)
+<span class="tok-kw">const</span> stations = <span class="tok-kw">await</span> client.charging.<span class="tok-fn">listStations</span>({ brand: <span class="tok-str">'tesla'</span> })
+
+<span class="tok-cmt">// OEM batch path</span>
+<span class="tok-kw">const</span> batch = <span class="tok-kw">await</span> client.vehicles.<span class="tok-fn">preauthorize</span>({
+  vins:         vins100k,
+  manufacturer: <span class="tok-str">'Tesla'</span>, model: <span class="tok-str">'Model 3'</span>, year: <span class="tok-num">2026</span>,
+  soulbound:    <span class="tok-kw">true</span>,
+})</code></pre>
+    </section>
+
+    <!-- ─────────────────────── SDK VOICE ─────────────────────── -->
+    <section class="doc" id="sdk-voice">
+      <h2>Voice SDK <a href="#sdk-voice" class="anchor">#</a></h2>
+      <p>Drop-in adapter that converts natural language ("Charge to 80% with USDC") into on-chain transactions. Ships with Tesla-Grok, Alexa Auto, Google Assistant, and Siri/CarPlay platform adapters.</p>
+<pre><code>npm install @e-car-eth/voice-sdk</code></pre>
+<pre><code><span class="tok-kw">import</span> { <span class="tok-type">ECarVoicePlugin</span> } <span class="tok-kw">from</span> <span class="tok-str">'@e-car-eth/voice-sdk'</span>
+
+<span class="tok-kw">const</span> plugin = <span class="tok-kw">new</span> <span class="tok-type">ECarVoicePlugin</span>({
+  vehicleId: <span class="tok-num">1n</span>,
+  apiKey:    process.env.<span class="tok-prop">ECAR_API_KEY</span>,
+  adapter:   <span class="tok-str">'tesla-grok'</span>, <span class="tok-cmt">// alexa-auto | google-assistant | siri-carplay</span>
+})
+
+<span class="tok-kw">const</span> tts = <span class="tok-kw">await</span> plugin.<span class="tok-fn">handleUtterance</span>(
+  <span class="tok-str">"Charge to 80% at the nearest Tesla station and pay with USDC"</span>
+)</code></pre>
+    </section>
+
+    <!-- ─────────────────────── SCRIPTS ─────────────────────── -->
+    <section class="doc" id="scripts">
+      <h2>Quickstart Bash Script <a href="#scripts" class="anchor">#</a></h2>
+      <p>A single bash file that exercises the full OEM path against any base URL — health, brand lookup, preauthorize, proof fetch, paginated proofs, bulk transfer, vehicle read, battery passport, station list. Useful as both a smoke check and a working example for integration teams.</p>
+<pre><code><span class="tok-cmt"># Get the script from the repo</span>
+<span class="tok-kw">curl</span> <span class="tok-flag">-O</span> https://raw.githubusercontent.com/RWA-ID/e-car-api/main/api/scripts/oem-quickstart.sh
+<span class="tok-kw">chmod</span> +x oem-quickstart.sh
+
+<span class="tok-cmt"># Run against any environment</span>
+API_BASE=<span class="tok-str">https://earnest-harmony-e-car.up.railway.app</span> \
+API_KEY=<span class="tok-str">ecar_fre_…</span> \
+BRAND=tesla \
+./oem-quickstart.sh</code></pre>
+      <p>Prints colored pass/fail per step and aborts on the first regression — drop it into CI for production smoke checks.</p>
+    </section>
+
+    <!-- ─────────────────────── HTTP COLLECTION ─────────────────────── -->
+    <section class="doc" id="http-collection">
+      <h2>.http / Postman Collection <a href="#http-collection" class="anchor">#</a></h2>
+      <p>A pre-filled REST Client collection (VS Code REST Client, JetBrains HTTP Client, Postman-importable) covering every key OEM endpoint. Variables for <code>baseUrl</code>, <code>apiKey</code>, <code>brand</code>, and wallet addresses are at the top of the file.</p>
+<pre><code><span class="tok-cmt"># Open in VS Code with the REST Client extension installed</span>
+<span class="tok-kw">curl</span> <span class="tok-flag">-O</span> https://raw.githubusercontent.com/RWA-ID/e-car-api/main/api/scripts/oem.http
+code oem.http</code></pre>
+    </section>
+
+    <!-- ─────────────────────── WEBSOCKET ─────────────────────── -->
+    <section class="doc" id="websocket">
+      <h2>WebSocket Events <a href="#websocket" class="anchor">#</a></h2>
+<pre><code><span class="tok-kw">const</span> ws = <span class="tok-kw">new</span> WebSocket(<span class="tok-str">'wss://earnest-harmony-e-car.up.railway.app/ws'</span>)
+ws.<span class="tok-fn">addEventListener</span>(<span class="tok-str">'open'</span>, () =&gt; {
+  ws.<span class="tok-fn">send</span>(JSON.<span class="tok-fn">stringify</span>({
+    type:     <span class="tok-str">'subscribe'</span>,
+    channels: [<span class="tok-str">'vehicles'</span>, <span class="tok-str">'charging'</span>, <span class="tok-str">'battery'</span>],
+  }))
+})
+ws.<span class="tok-fn">addEventListener</span>(<span class="tok-str">'message'</span>, (e) =&gt; console.<span class="tok-fn">log</span>(JSON.<span class="tok-fn">parse</span>(e.data)))
+<span class="tok-cmt">// { type: 'vehicle:registered', tokenId: '2', manufacturer: 'Ford' }
+// { type: 'session:started',    sessionId: '...', stationNodeId: '0x...' }
+// { type: 'battery:updated',    vehicleId: '1', stateOfHealth: 91 }</span></code></pre>
+    </section>
+
+    <!-- ─────────────────────── GRAPHQL ─────────────────────── -->
+    <section class="doc" id="graphql">
+      <h2>GraphQL <a href="#graphql" class="anchor">#</a></h2>
+      <p>The GraphQL endpoint exposes the same data with field-level selection. Useful when a UI needs vehicle + passport + ownership in one round-trip.</p>
+<pre><code>POST /graphql
+
+{
+  vehicle(tokenId: <span class="tok-str">"1"</span>) {
+    manufacturer
+    model
+    locked
+    owner
+    batteryPassport { stateOfHealth cycleCount merkleRoot }
+  }
+}</code></pre>
+    </section>
+
+    <!-- ─────────────────────── ERRORS ─────────────────────── -->
+    <section class="doc" id="errors">
+      <h2>Error Codes <a href="#errors" class="anchor">#</a></h2>
+      <table>
+        <thead><tr><th>Status</th><th>Meaning</th><th>Typical fix</th></tr></thead>
+        <tbody>
+          <tr><td><code>400</code></td><td>Bad request — missing or malformed field</td><td>Check the request body against the schema</td></tr>
+          <tr><td><code>401</code></td><td>Missing/invalid API key</td><td>Pass <code>x-api-key</code> header with a valid key</td></tr>
+          <tr><td><code>404</code></td><td>Resource not found (vehicle, batch, station)</td><td>Verify the ID is correct + exists on Sepolia</td></tr>
+          <tr><td><code>429</code></td><td>Rate limit exceeded</td><td>Back off, request OEM tier, or check the tier table</td></tr>
+          <tr><td><code>500</code></td><td>Server error</td><td>Retry; contact <a href="mailto:e-car@onchain-id.id">e-car@onchain-id.id</a> if persistent</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ─────────────────────── RATE LIMITS ─────────────────────── -->
+    <section class="doc" id="rate-limits">
+      <h2>Rate Limits <a href="#rate-limits" class="anchor">#</a></h2>
+      <table>
+        <thead><tr><th>Tier</th><th>Monthly</th><th>Per minute</th><th>Network</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Free</td><td>10,000</td><td>60</td><td>Sepolia</td><td>One key per wallet · self-serve</td></tr>
+          <tr><td>OEM</td><td>5,000,000</td><td>1,000</td><td>Sepolia (mainnet seat reserved)</td><td>Voice SDK · Brand namespace · 99.9% SLA</td></tr>
+          <tr><td>Enterprise</td><td>Unlimited</td><td>5,000</td><td>Multi-chain · custom</td><td>Dedicated RPC · white-label · 99.99% SLA</td></tr>
+        </tbody>
+      </table>
+      <p>Write endpoints (POST/PUT/PATCH/DELETE) have a stricter per-route ceiling of 10/minute on free tier — designed for OEM batch flows, not foot-gun loops.</p>
+    </section>
+
+    <!-- ─────────────────────── CONTRACTS ─────────────────────── -->
+    <section class="doc" id="contracts">
+      <h2>Sepolia Contracts <a href="#contracts" class="anchor">#</a></h2>
+      <p>All 10 core contracts are source-verified on Sepolia. The API reads from these addresses directly via viem — no caching layer between you and the chain.</p>
+      <table>
+        <thead><tr><th>Contract</th><th>Address</th></tr></thead>
+        <tbody>
+          <tr><td><code>VehicleIdentity</code></td><td><a href="https://sepolia.etherscan.io/address/0x54e01a35371a5cc945403b34f151bF082FeB41d1" target="_blank" rel="noopener"><code>0x54e0…41d1</code></a></td></tr>
+          <tr><td><code>BatteryPassport</code></td><td><a href="https://sepolia.etherscan.io/address/0x0931166d309C43E3a4C9e1108cA294a80C794E15" target="_blank" rel="noopener"><code>0x0931…4E15</code></a></td></tr>
+          <tr><td><code>UniversalPaymentEscrow</code></td><td><a href="https://sepolia.etherscan.io/address/0x7c9aDE7EBf0De8A98263889E40B835e775246c9f" target="_blank" rel="noopener"><code>0x7c9a…6c9f</code></a></td></tr>
+          <tr><td><code>AgentWallet</code> (impl)</td><td><a href="https://sepolia.etherscan.io/address/0x0a235Bf7f71349b6663e5875d7B60F18b7a26f7f" target="_blank" rel="noopener"><code>0x0a23…6f7f</code></a></td></tr>
+          <tr><td><code>MerkleBatchOracle</code></td><td><a href="https://sepolia.etherscan.io/address/0x8d0324e1AeeeC039c31ed28f1C148A8F34961982" target="_blank" rel="noopener"><code>0x8d03…1982</code></a></td></tr>
+          <tr><td><code>NamespaceGovernorFactory</code></td><td><a href="https://sepolia.etherscan.io/address/0x9544eA93D662a2d7AF2F66061C1863079992a89C" target="_blank" rel="noopener"><code>0x9544…a89C</code></a></td></tr>
+          <tr><td><code>MultiSigFactory</code></td><td><a href="https://sepolia.etherscan.io/address/0x5d10C00CFDBd5E73B1973c2275f5a028288400a9" target="_blank" rel="noopener"><code>0x5d10…00a9</code></a></td></tr>
+          <tr><td><code>ChargingStationRegistry</code></td><td><a href="https://sepolia.etherscan.io/address/0xfB91A8d3599952e2425534cA656396E9488646E5" target="_blank" rel="noopener"><code>0xfB91…46E5</code></a></td></tr>
+          <tr><td><code>ChargingPaymentRouter</code></td><td><a href="https://sepolia.etherscan.io/address/0x3aeC1c86933a8E5b037E9dbC2Fa996fF24992462" target="_blank" rel="noopener"><code>0x3aeC…2462</code></a></td></tr>
+          <tr><td><code>VoiceRampRouter</code></td><td><a href="https://sepolia.etherscan.io/address/0x3a1e3C07c3a60e783ce42128724040Fe45093080" target="_blank" rel="noopener"><code>0x3a1e…3080</code></a></td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Full OpenAPI reference:</strong> <a href="https://earnest-harmony-e-car.up.railway.app/docs" target="_blank" rel="noopener">earnest-harmony-e-car.up.railway.app/docs</a> — Swagger UI with try-it-now.</div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Copy buttons on every <pre>
+  document.querySelectorAll('pre').forEach((pre) => {
+    const btn = document.createElement('button')
+    btn.className = 'copy-btn'
+    btn.textContent = 'Copy'
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pre.innerText.replace(/\bCopy\b\s*$/, '').trim())
+        btn.textContent = 'Copied'
+        btn.classList.add('copied')
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied') }, 1400)
+      } catch {}
+    })
+    pre.appendChild(btn)
+  })
+
+  // Scrollspy: highlight active sidebar link
+  const sections = [...document.querySelectorAll('section.doc')]
+  const links = new Map([...document.querySelectorAll('aside a')]
+    .map(a => [a.getAttribute('href').slice(1), a]))
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id
+        links.forEach(a => a.classList.remove('active'))
+        links.get(id)?.classList.add('active')
+      }
+    })
+  }, { rootMargin: '-25% 0px -65% 0px' })
+  sections.forEach(s => observer.observe(s))
+</script>
+
+</body>
+</html>
