@@ -285,13 +285,20 @@
     }
   }
 
-  // Wait for window.ecarWallet to be defined by wallet.js
+  // Wait for window.ecarWallet to be defined by wallet.js. If the bundle
+  // crashed during evaluation, surface the actual error.
   function waitForBundle(maxMs = 12000) {
     return new Promise((resolve, reject) => {
       const start = Date.now();
       (function check() {
         if (window.ecarWallet) return resolve(window.ecarWallet);
-        if (Date.now() - start > maxMs) return reject(new Error('wallet.js never registered window.ecarWallet'));
+        if (window.ecarWalletError) {
+          return reject(new Error('wallet.js crashed: ' + window.ecarWalletError.message));
+        }
+        if (Date.now() - start > maxMs) {
+          const status = window.ecarWalletStatus || '(no status)';
+          return reject(new Error('wallet.js never registered window.ecarWallet (status: ' + status + ')'));
+        }
         setTimeout(check, 80);
       })();
     });

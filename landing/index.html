@@ -974,51 +974,59 @@ curl <span class="kw">-X</span> POST <span class="str">api.e-car.eth/v1/vehicles
 <!-- ───────────────────── SCRIPTS ───────────────────── -->
 <script>
   // ──────────────────────────────────────────────────────────
-  // Reserved OEM namespaces — render once from data
+  // Reserved OEM namespaces — [slug, brand domain, 2-letter fallback, status]
+  // Status is 'reserved' for all until the first OEM actually claims on-chain.
   // ──────────────────────────────────────────────────────────
+  const BRANDFETCH_ID = '1idCGSZnaFL2hkG7DtD';
   const BRANDS = [
-    ['tesla',    'TS',  'claimed'],
-    ['ford',     'FO',  'reserved'],
-    ['rivian',   'RV',  'reserved'],
-    ['byd',      'BY',  'reserved'],
-    ['bmw',      'BM',  'reserved'],
-    ['mercedes', 'MB',  'reserved'],
-    ['audi',     'AU',  'reserved'],
-    ['porsche',  'PO',  'reserved'],
-    ['gm',       'GM',  'reserved'],
-    ['toyota',   'TO',  'reserved'],
-    ['honda',    'HN',  'reserved'],
-    ['hyundai',  'HY',  'reserved'],
-    ['kia',      'KI',  'reserved'],
-    ['nissan',   'NS',  'reserved'],
-    ['volvo',    'VO',  'reserved'],
-    ['polestar', 'PS',  'reserved'],
-    ['lucid',    'LD',  'reserved'],
-    ['nio',      'NI',  'reserved'],
-    ['xpeng',    'XP',  'reserved'],
-    ['li',       'LI',  'reserved'],
-    ['vw',       'VW',  'reserved'],
-    ['stellantis','ST', 'reserved'],
-    ['jaguar',   'JG',  'reserved'],
-    ['fisker',   'FK',  'reserved'],
-    ['lotus',    'LT',  'reserved'],
-    ['mclaren',  'MC',  'reserved'],
-    ['genesis',  'GN',  'reserved'],
-    ['cadillac', 'CA',  'reserved'],
-    ['lincoln',  'LN',  'reserved'],
-    ['mini',     'MN',  'reserved'],
-    ['smart',    'SM',  'reserved'],
-    ['tata',     'TA',  'reserved'],
-    ['mahindra', 'MA',  'reserved'],
-    ['vinfast',  'VN',  'reserved'],
-    ['zeekr',    'ZK',  'reserved'],
-    ['leapmotor','LP',  'reserved']
+    ['tesla',     'tesla.com',         'TS', 'reserved'],
+    ['ford',      'ford.com',          'FO', 'reserved'],
+    ['rivian',    'rivian.com',        'RV', 'reserved'],
+    ['byd',       'byd.com',           'BY', 'reserved'],
+    ['bmw',       'bmw.com',           'BM', 'reserved'],
+    ['mercedes',  'mercedes-benz.com', 'MB', 'reserved'],
+    ['audi',      'audi.com',          'AU', 'reserved'],
+    ['porsche',   'porsche.com',       'PO', 'reserved'],
+    ['gm',        'gm.com',            'GM', 'reserved'],
+    ['toyota',    'toyota.com',        'TO', 'reserved'],
+    ['honda',     'honda.com',         'HN', 'reserved'],
+    ['hyundai',   'hyundai.com',       'HY', 'reserved'],
+    ['kia',       'kia.com',           'KI', 'reserved'],
+    ['nissan',    'nissan-global.com', 'NS', 'reserved'],
+    ['volvo',     'volvocars.com',     'VO', 'reserved'],
+    ['polestar',  'polestar.com',      'PS', 'reserved'],
+    ['lucid',     'lucidmotors.com',   'LD', 'reserved'],
+    ['nio',       'nio.com',           'NI', 'reserved'],
+    ['xpeng',     'xpeng.com',         'XP', 'reserved'],
+    ['li',        'lixiang.com',       'LI', 'reserved'],
+    ['vw',        'vw.com',            'VW', 'reserved'],
+    ['stellantis','stellantis.com',    'ST', 'reserved'],
+    ['jaguar',    'jaguar.com',        'JG', 'reserved'],
+    ['fisker',    'fiskerinc.com',     'FK', 'reserved'],
+    ['lotus',     'lotuscars.com',     'LT', 'reserved'],
+    ['mclaren',   'mclaren.com',       'MC', 'reserved'],
+    ['genesis',   'genesis.com',       'GN', 'reserved'],
+    ['cadillac',  'cadillac.com',      'CA', 'reserved'],
+    ['lincoln',   'lincoln.com',       'LN', 'reserved'],
+    ['mini',      'mini.com',          'MN', 'reserved'],
+    ['smart',     'smart.com',         'SM', 'reserved'],
+    ['tata',      'tatamotors.com',    'TA', 'reserved'],
+    ['mahindra',  'mahindra.com',      'MA', 'reserved'],
+    ['vinfast',   'vinfastauto.com',   'VN', 'reserved'],
+    ['zeekr',     'zeekrlife.com',     'ZK', 'reserved'],
+    ['leapmotor', 'leapmotor.com',     'LP', 'reserved']
   ];
   const grid = document.getElementById('ns-grid');
   if (grid) {
-    grid.innerHTML = BRANDS.map(([name, mono, status]) => `
+    // Each pill: tries Brandfetch logo first, falls back to monogram letters
+    // if the image fails to load (CORS / 404 / unregistered domain).
+    grid.innerHTML = BRANDS.map(([name, domain, mono, status]) => `
       <div class="ns-cell ${status}">
-        <div class="ns-mono">${mono}</div>
+        <div class="ns-mono" title="${name} · ${domain}">
+          <img loading="lazy" alt="${name}"
+               src="https://cdn.brandfetch.io/${domain}/w/48/h/48?c=${BRANDFETCH_ID}"
+               onerror="this.parentNode.classList.add('fallback');this.parentNode.textContent='${mono}';"/>
+        </div>
         <span>${name}<span class="ns-eth">.e-car.eth</span></span>
         <span class="ns-status">${status === 'claimed' ? '● live' : '○ reserved'}</span>
       </div>
