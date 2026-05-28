@@ -8,6 +8,15 @@
 //   window.ecarWalletStatus   'loading' | 'ready' | 'error'
 //   window.ecarWalletError    { message, stack } when status === 'error'
 
+// ── Real Buffer polyfill — must run BEFORE any Reown import.
+// Reown uses Buffer.from(t,"base64") and Buffer.alloc() to encode the
+// WalletConnect JWT payload. A stubbed-empty Buffer produces an empty
+// JWT body → relay rejects with "EOF while parsing at line 1 column 0".
+import { Buffer } from 'buffer'
+if (typeof globalThis.Buffer === 'undefined' || typeof globalThis.Buffer.from !== 'function') {
+  globalThis.Buffer = Buffer
+}
+
 import { createAppKit } from '@reown/appkit'
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { sepolia, mainnet } from '@reown/appkit/networks'
