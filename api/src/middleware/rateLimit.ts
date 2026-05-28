@@ -1,6 +1,10 @@
 import rateLimit from 'express-rate-limit'
+import type { Request, Response, NextFunction } from 'express'
 
-export const standardLimiter = rateLimit({
+const noop = (_req: Request, _res: Response, next: NextFunction) => next()
+const isTest = process.env.NODE_ENV === 'test'
+
+export const standardLimiter = isTest ? noop : rateLimit({
   windowMs: 60 * 1000,
   max: 100,
   standardHeaders: true,
@@ -8,7 +12,7 @@ export const standardLimiter = rateLimit({
   message: { error: 'Too many requests, please try again in a minute.' },
 })
 
-export const writeLimiter = rateLimit({
+export const writeLimiter = isTest ? noop : rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   standardHeaders: true,

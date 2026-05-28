@@ -4,30 +4,9 @@ import { writeLimiter } from '../middleware/rateLimit'
 import { keccak256, encodePacked, toBytes, encodeFunctionData } from 'viem'
 import crypto from 'crypto'
 import { CONTRACTS, VEHICLE_IDENTITY_ABI } from '../lib/client'
+import { batchStore, BatchEntry } from '../lib/batchStore'
 
 const router = Router()
-
-// In-memory batch store (survives restarts poorly — acceptable for Sepolia testnet)
-interface BatchEntry {
-  batchId: string
-  merkleRoot: `0x${string}`
-  manufacturer: string
-  model: string
-  year: number
-  batteryCapacityKwh: number
-  defaultSoulbound: boolean
-  total: number
-  createdAt: string
-  vehicles: {
-    vin: string
-    vinHash: `0x${string}`
-    soulbound: boolean
-    leaf: `0x${string}`
-    proof: `0x${string}`[]
-  }[]
-}
-
-const batches = new Map<string, BatchEntry>()
 
 // Build Merkle tree — returns root and per-leaf proofs
 function buildMerkleTree(leaves: `0x${string}`[]): {
@@ -36,11 +15,12 @@ function buildMerkleTree(leaves: `0x${string}`[]): {
 } {
   if (leaves.length === 0) throw new Error('No leaves provided')
 
-  // Pad to even length
-  const layer0 = leaves.length % 2 === 0
-    ? [...leaves]
-    : [...leaves, leaves[leaves.length - 1]]
+  // Pad every layer (not just layer 0) to even length by duplicating the last
+  // node — required so each pairing step has a defined right sibling.
+  const padEven = (xs: `0x${string}`[]) =>
+    xs.length % 2 === 0 ? xs : [...xs, xs[xs.length - 1]]
 
+  const layer0 = padEven([...leaves])
   const allLayers: `0x${string}`[][] = [layer0]
   let layer = layer0
 
@@ -52,7 +32,8 @@ function buildMerkleTree(leaves: `0x${string}`[]): {
         : [layer[i + 1], layer[i]]
       next.push(keccak256(encodePacked(['bytes32', 'bytes32'], [a, b])))
     }
-    layer = next
+    // Only pad if we still have more than one node — once we reach 1, that's the root.
+    layer = next.length > 1 ? padEven(next) : next
     allLayers.push(layer)
   }
 
@@ -143,7 +124,7 @@ router.post('/preauthorize', requireAuth, writeLimiter, async (req, res) => {
     vehicles: vehicles.map((v, i) => ({ ...v, proof: proofs[i] })),
   }
 
-  batches.set(batchId, entry)
+  batchStore.put(entry)
 
   res.status(201).json({
     batchId,
@@ -168,24 +149,12 @@ router.post('/preauthorize', requireAuth, writeLimiter, async (req, res) => {
  * Get batch summary
  */
 router.get('/:batchId', requireAuth, async (req, res) => {
-  const batch = batches.get(req.params.batchId)
-  if (!batch) {
+  const summary = batchStore.getSummary(req.params.batchId)
+  if (!summary) {
     res.status(404).json({ error: 'Batch not found' })
     return
   }
-  res.json({
-    batchId: batch.batchId,
-    merkleRoot: batch.merkleRoot,
-    manufacturer: batch.manufacturer,
-    model: batch.model,
-    year: batch.year,
-    batteryCapacityKwh: batch.batteryCapacityKwh,
-    defaultSoulbound: batch.defaultSoulbound,
-    total: batch.total,
-    soulboundCount: batch.vehicles.filter(v => v.soulbound).length,
-    transferableCount: batch.vehicles.filter(v => !v.soulbound).length,
-    createdAt: batch.createdAt,
-  })
+  res.json(summary)
 })
 
 /**
@@ -193,21 +162,19 @@ router.get('/:batchId', requireAuth, async (req, res) => {
  * Get the Merkle proof for a single VIN — called at vehicle registration time
  */
 router.get('/:batchId/proof/:vin', async (req, res) => {
-  const batch = batches.get(req.params.batchId)
-  if (!batch) {
+  const summary = batchStore.getSummary(req.params.batchId)
+  if (!summary) {
     res.status(404).json({ error: 'Batch not found' })
     return
   }
-
-  const vehicle = batch.vehicles.find(v => v.vin === req.params.vin)
+  const vehicle = batchStore.getVehicle(req.params.batchId, req.params.vin)
   if (!vehicle) {
     res.status(404).json({ error: 'VIN not found in this batch' })
     return
   }
-
   res.json({
-    batchId: batch.batchId,
-    merkleRoot: batch.merkleRoot,
+    batchId: summary.batchId,
+    merkleRoot: summary.merkleRoot,
     vin: vehicle.vin,
     vinHash: vehicle.vinHash,
     soulbound: vehicle.soulbound,
@@ -227,29 +194,22 @@ router.get('/:batchId/proof/:vin', async (req, res) => {
  * Get all proofs for a batch (paginated)
  */
 router.get('/:batchId/proofs', requireAuth, async (req, res) => {
-  const batch = batches.get(req.params.batchId)
-  if (!batch) {
+  const summary = batchStore.getSummary(req.params.batchId)
+  if (!summary) {
     res.status(404).json({ error: 'Batch not found' })
     return
   }
-
   const limit = Math.min(Number(req.query.limit ?? 500), 1000)
   const offset = Number(req.query.offset ?? 0)
-  const slice = batch.vehicles.slice(offset, offset + limit)
+  const slice = batchStore.getVehiclesPage(req.params.batchId, limit, offset)
 
   res.json({
-    batchId: batch.batchId,
-    merkleRoot: batch.merkleRoot,
-    total: batch.total,
+    batchId: summary.batchId,
+    merkleRoot: summary.merkleRoot,
+    total: summary.total,
     limit,
     offset,
-    vehicles: slice.map(v => ({
-      vin: v.vin,
-      vinHash: v.vinHash,
-      soulbound: v.soulbound,
-      leaf: v.leaf,
-      proof: v.proof,
-    })),
+    vehicles: slice,
   })
 })
 
@@ -268,8 +228,8 @@ router.get('/:batchId/proofs', requireAuth, async (req, res) => {
  * The OEM signs each one with their wallet (or a multicall contract for batching).
  */
 router.post('/:batchId/transfer', requireAuth, writeLimiter, async (req, res) => {
-  const batch = batches.get(req.params.batchId)
-  if (!batch) {
+  const summary = batchStore.getSummary(req.params.batchId)
+  if (!summary) {
     res.status(404).json({ error: 'Batch not found' })
     return
   }
@@ -313,7 +273,7 @@ router.post('/:batchId/transfer', requireAuth, writeLimiter, async (req, res) =>
   }))
 
   res.json({
-    batchId: batch.batchId,
+    batchId: summary.batchId,
     from,
     total: unsignedTxs.length,
     contract: CONTRACTS.vehicleIdentity,

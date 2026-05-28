@@ -1,0 +1,252 @@
+### ─────────────────────────────────────────────────────────────────────────
+### e-car.eth — OEM endpoint collection
+### ─────────────────────────────────────────────────────────────────────────
+### Works with VS Code REST Client and JetBrains HTTP Client.
+### Import into Postman via: File → Import → paste this file.
+###
+### Switch baseUrl between local + Railway by commenting/uncommenting below.
+### ─────────────────────────────────────────────────────────────────────────
+
+@baseUrl   = http://localhost:3001
+# @baseUrl   = https://earnest-harmony-e-car.up.railway.app
+
+@apiKey       = test-api-key
+@adminSecret  = test-admin-secret
+@brand        = tesla
+@vehicleId    = 1
+@oemWallet    = 0x1111111111111111111111111111111111111111
+@buyerWallet  = 0x2222222222222222222222222222222222222222
+
+### ─── 0. Health ───────────────────────────────────────────────────────────
+GET {{baseUrl}}/health
+
+### ─── 1. Auth ─────────────────────────────────────────────────────────────
+### List tiers (public)
+GET {{baseUrl}}/auth/tiers
+
+### Mint an API key (admin only)
+POST {{baseUrl}}/auth/keys
+x-admin-secret: {{adminSecret}}
+Content-Type: application/json
+
+{
+  "label": "oem-tesla-pilot",
+  "tier":  "oem"
+}
+
+### Get info for current key
+GET {{baseUrl}}/auth/keys/info
+x-api-key: {{apiKey}}
+
+### Revoke current key
+DELETE {{baseUrl}}/auth/keys
+x-api-key: {{apiKey}}
+
+### ─── 2. Brand namespace ──────────────────────────────────────────────────
+GET {{baseUrl}}/api/v1/brands/{{brand}}
+
+###
+POST {{baseUrl}}/api/v1/brands/{{brand}}/claim
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "signerAddress": "{{oemWallet}}"
+}
+
+### ─── 3. Vehicles ─────────────────────────────────────────────────────────
+GET {{baseUrl}}/api/v1/vehicles/{{vehicleId}}
+
+###
+POST {{baseUrl}}/api/v1/vehicles
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "vin":                "5YJSA1H21FFP00001",
+  "manufacturer":       "Tesla",
+  "model":              "Model 3",
+  "year":               2024,
+  "batteryCapacityKwh": 82
+}
+
+### ─── 4. Batch preauthorize (the OEM 100K path) ──────────────────────────
+### Submit a list of VINs. Returns batchId + merkleRoot.
+### Use overrides[] to make specific VINs transferable while others are soulbound.
+POST {{baseUrl}}/api/v1/vehicles/batch/preauthorize
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "vins": [
+    "OEM-QS-0001", "OEM-QS-0002", "OEM-QS-0003", "OEM-QS-0004",
+    "OEM-QS-0005", "OEM-QS-0006", "OEM-QS-0007", "OEM-QS-0008"
+  ],
+  "manufacturer":       "Tesla",
+  "model":              "Model 3",
+  "year":               2026,
+  "batteryCapacityKwh": 82,
+  "soulbound":          true,
+  "overrides": [
+    { "vin": "OEM-QS-0003", "soulbound": false }
+  ]
+}
+
+### Copy the `batchId` from above into the variable below before running the next 3 requests.
+@batchId = paste-batchId-here
+
+### Batch summary
+GET {{baseUrl}}/api/v1/vehicles/batch/{{batchId}}
+x-api-key: {{apiKey}}
+
+### Single Merkle proof (public — used at claim time by the vehicle owner)
+GET {{baseUrl}}/api/v1/vehicles/batch/{{batchId}}/proof/OEM-QS-0001
+
+### Paginated proofs (private — OEM batch fetch)
+GET {{baseUrl}}/api/v1/vehicles/batch/{{batchId}}/proofs?limit=100&offset=0
+x-api-key: {{apiKey}}
+
+### Bulk-transfer calldata (transferable NFTs only)
+POST {{baseUrl}}/api/v1/vehicles/batch/{{batchId}}/transfer
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "from": "{{oemWallet}}",
+  "transfers": [
+    { "tokenId": "1", "to": "{{buyerWallet}}" },
+    { "tokenId": "2", "to": "{{buyerWallet}}" }
+  ]
+}
+
+### ─── 5. Battery passport ─────────────────────────────────────────────────
+GET {{baseUrl}}/api/v1/battery/{{vehicleId}}
+
+###
+GET {{baseUrl}}/api/v1/battery/{{vehicleId}}/history
+
+###
+POST {{baseUrl}}/api/v1/battery/{{vehicleId}}/verify
+Content-Type: application/json
+
+{
+  "leaf":  "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+  "proof": ["0xcafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe"]
+}
+
+### ─── 6. Charging ─────────────────────────────────────────────────────────
+GET {{baseUrl}}/api/v1/charging/stations
+
+###
+POST {{baseUrl}}/api/v1/charging/stations
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "stationId":       "STATION-LA-001",
+  "brand":           "{{brand}}",
+  "pricePerKwh":     250000000000000,
+  "operatorAddress": "{{oemWallet}}"
+}
+
+### Initiate a charging session (creates escrow)
+POST {{baseUrl}}/api/v1/charging/sessions
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "stationNodeId": "0x16ee195ce43464aa0159cc05a804b668373b135970534f28ae30daddc0c586c2",
+  "vehicleId":     "{{vehicleId}}",
+  "estimatedKwh":  30,
+  "token":         "USDC"
+}
+
+### Finalize a session
+POST {{baseUrl}}/api/v1/charging/sessions/sess_1/finalize
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "escrowId":  "1",
+  "actualKwh": 28.5
+}
+
+### ─── 7. Fleet ────────────────────────────────────────────────────────────
+POST {{baseUrl}}/api/v1/fleet
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "name":            "Hertz NYC",
+  "operatorAddress": "{{oemWallet}}",
+  "vehicles":        ["1", "2"]
+}
+
+###
+GET {{baseUrl}}/api/v1/fleet/abc/payments?period=30d
+x-api-key: {{apiKey}}
+
+### ─── 8. Carbon credits ───────────────────────────────────────────────────
+GET {{baseUrl}}/api/v1/carbon/{{vehicleId}}
+
+###
+POST {{baseUrl}}/api/v1/carbon/{{vehicleId}}/mint
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "verifiedMileage": 1250,
+  "odometerProof":   "0xproof..."
+}
+
+###
+POST {{baseUrl}}/api/v1/carbon/{{vehicleId}}/retire
+x-api-key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "amount":      5,
+  "reason":      "ESG Q1 2026 — corporate ESG report",
+  "beneficiary": "{{oemWallet}}"
+}
+
+### ─── 9. Voice + Ramp ────────────────────────────────────────────────────
+POST {{baseUrl}}/api/v1/voice/intent
+Content-Type: application/json
+
+{
+  "utterance":  "Charge my car to 80% and pay with USDC",
+  "vehicleId":  "{{vehicleId}}"
+}
+
+###
+GET {{baseUrl}}/api/v1/ramp/providers
+
+###
+POST {{baseUrl}}/api/v1/ramp/initiate
+Content-Type: application/json
+
+{
+  "amount":         100,
+  "currency":       "USDC",
+  "provider":       "moonpay",
+  "walletAddress":  "{{oemWallet}}"
+}
+
+### ─── 10. Merkle utilities ───────────────────────────────────────────────
+POST {{baseUrl}}/api/v1/merkle/generate
+Content-Type: application/json
+
+{
+  "leaves": ["alpha", "bravo", "charlie", "delta"]
+}
+
+###
+POST {{baseUrl}}/api/v1/merkle/verify
+Content-Type: application/json
+
+{
+  "root":  "0xroot...",
+  "proof": ["0x..."],
+  "leaf":  "0xleaf..."
+}
