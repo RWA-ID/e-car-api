@@ -545,13 +545,25 @@ https://earnest-harmony-e-car.up.railway.app
 
 ### Authentication
 
-API keys are issued manually after submitting the access request form at [e-car.eth.limo](https://e-car.eth.limo). Contact [e-car@onchain-id.id](mailto:e-car@onchain-id.id) for OEM and Enterprise tiers.
+A free **Developer** (Sepolia) key is self-serve — no form, no email, no OEM partnership. Connect a wallet at [e-car.eth.limo](https://e-car.eth.limo) and sign a message, or call the API directly. The signature is a gasless `personal_sign` proof of wallet ownership — it does **not** authorize any transaction. Keys are idempotent per wallet: repeat requests return the same key.
 
 ```bash
-# All authenticated requests
+# Step 1 — request a single-use nonce + message to sign
+curl "https://earnest-harmony-e-car.up.railway.app/auth/nonce?address=0xYOUR_WALLET"
+# { "nonce": "a1b2…", "message": "e-car.eth wants you to sign in…", "expiresInSeconds": 600 }
+
+# Step 2 — sign `message` with your wallet (personal_sign / EIP-191), then exchange it for a key
+curl -X POST https://earnest-harmony-e-car.up.railway.app/auth/keys/wallet \
+  -H "Content-Type: application/json" \
+  -d '{"address":"0xYOUR_WALLET","nonce":"a1b2…","signature":"0x…","message":"e-car.eth wants you to sign in…"}'
+# { "apiKey": "ecar_fre_…", "tier": "free", "network": "sepolia", "reused": false }
+
+# Step 3 — use the key on all authenticated requests
 curl https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/1 \
-  -H "x-api-key: ecar_oem_..."
+  -H "x-api-key: ecar_fre_..."
 ```
+
+**OEM** and **Enterprise** keys are provisioned manually at mainnet launch — contact [e-car@onchain-id.id](mailto:e-car@onchain-id.id).
 
 ### Core Endpoints
 
@@ -559,6 +571,8 @@ curl https://earnest-harmony-e-car.up.railway.app/api/v1/vehicles/1 \
 |---|---|---|---|
 | `GET` | `/health` | None | Health check |
 | `GET` | `/auth/tiers` | None | List tiers and pricing |
+| `GET` | `/auth/nonce` | None | Get a single-use nonce + message to sign |
+| `POST` | `/auth/keys/wallet` | Signature | Exchange a signed message for a free Sepolia key |
 | `GET` | `/api/v1/vehicles/:tokenId` | None | Get vehicle from `VehicleIdentity.sol` |
 | `POST` | `/api/v1/vehicles` | Required | Register vehicle (returns unsigned tx) |
 | `POST` | `/api/v1/vehicles/batch/preauthorize` | Required | Pre-authorize up to 100K vehicles via Merkle |
@@ -821,18 +835,21 @@ forge test -vv
 | Tier | Price | Requests | Network |
 |---|---|---|---|
 | Developer | Free | 10,000/mo | Sepolia |
-| OEM | $5,000/mo | 5,000,000/mo | Mainnet + Sepolia |
-| Enterprise | $25,000/mo | Unlimited | Multi-chain |
+| OEM | $15,000/mo | 5,000,000/mo | Mainnet |
+| Enterprise | $25,000/mo | Unlimited | Mainnet (multi-chain) |
+
+The **Developer** tier is live now — self-serve, free, Sepolia only. The paid **OEM** and **Enterprise** tiers activate at **mainnet launch** (following OEM onboarding); contact [e-car@onchain-id.id](mailto:e-car@onchain-id.id) to reserve access.
 
 ### On-Chain Fees
 
 | Action | Fee | Split |
 |---|---|---|
 | Brand namespace claim | 10 ETH | 100% treasury |
-| Vehicle registration | 0.01 ETH | 100% treasury |
+| Vehicle registration / mint | Free (gas only) | — |
+| Carbon credit mint | Free (gas only) | — |
 | Charging payment | 0.3% of session | 70% operator / 30% treasury |
-| Marketplace transaction | 1% | 100% treasury |
-| Carbon credit mint | 5% of credits | 100% treasury |
+| Marketplace transaction | 2.5% | 100% treasury |
+| V2G settlement | 1% | 100% treasury |
 
 Treasury governed by `ECarDAO.sol` — token holders vote on upgrades, fee changes, and grant allocations.
 

@@ -38,7 +38,7 @@ function buildSiweMessage(wallet: string, nonce: string, issuedAt: string): stri
 
 const TIERS: Record<string, { monthlyLimit: number; rateLimit: number; price: string }> = {
   free:       { monthlyLimit: 10_000,    rateLimit: 60,   price: '$0/mo' },
-  oem:        { monthlyLimit: Infinity,  rateLimit: 1000, price: '$5,000/mo' },
+  oem:        { monthlyLimit: Infinity,  rateLimit: 1000, price: '$15,000/mo' },
   enterprise: { monthlyLimit: Infinity,  rateLimit: 5000, price: '$25,000/mo' },
 }
 
