@@ -8,6 +8,7 @@ export const openApiSpec = {
     license: { name: 'MIT' },
   },
   servers: [
+    { url: '/', description: 'This server' },
     { url: 'http://localhost:3001', description: 'Local development' },
     { url: 'https://api.e-car.eth', description: 'Production' },
   ],
