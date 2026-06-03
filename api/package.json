@@ -21,8 +21,11 @@
     "graphql-http": "^1.22.0",
     "jsonwebtoken": "^9.0.0",
     "swagger-ui-express": "^5.0.0",
-    "viem": "^2.21.0",
+    "viem": "2.47.6",
     "ws": "^8.18.0"
+  },
+  "overrides": {
+    "ox": "0.14.7"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
