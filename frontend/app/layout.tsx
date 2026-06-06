@@ -7,7 +7,7 @@ import { createWeb3Modal } from '@web3modal/wagmi/react'
 import { wagmiConfig } from '../lib/wagmi'
 import { useState } from 'react'
 
-const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'YOUR_PROJECT_ID'
+const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '43bdd1b8c477ac4d4a4264a14a8472f8'
 
 createWeb3Modal({
   wagmiConfig,
